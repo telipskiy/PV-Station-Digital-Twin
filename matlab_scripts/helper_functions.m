@@ -21,14 +21,14 @@ function plot_time_series(t, data, title_str)
     set(gca, 'FontSize', 11);
 end
 
-function export_results_to_excel(results_table, filename)
-    writetable(results_table, filename);
-    fprintf('Results exported to: %s\n', filename);
-end
-
 function [mean_val, std_val, min_val, max_val] = compute_statistics(data)
     mean_val = mean(data);
     std_val = std(data);
     min_val = min(data);
     max_val = max(data);
+end
+
+function export_to_csv(results, filename)
+    writetable(results, filename);
+    fprintf('Data exported to: %s\n', filename);
 end
