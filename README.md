@@ -1,17 +1,11 @@
 # Цифровий Двійник Фотоелектричної Станції
 ## Digital Twin of PV Station
 
-### Дисертація: "Обґрунтування раціональної структури електричної схеми станцій із сонячною генерацією"
-**Dissertation:** "Justification of rational structure of electrical circuit of stations with solar generation"
-
-**Рівень:** PhD (G3 Електрична інженерія)  
-**Level:** PhD (G3 Electrical Engineering)
-
 ---
 
 ## Опис / Description
 
-Цей проект реалізує комплексний цифровий двійник фотоелектричної станції (ПЕС) у середовищі **MATLAB Simulink** з використанням бібліотеки **Simscape Electrical**.
+Цей проект реалізує комплексний цифровий двійник фотоелектричної станції (СЕС) у середовищі **MATLAB Simulink** з використанням бібліотеки **Simscape Electrical**.
 
 Digital twin system of photovoltaic (PV) station implemented in **MATLAB Simulink** using **Simscape Electrical** library.
 
@@ -30,7 +24,7 @@ Digital twin system of photovoltaic (PV) station implemented in **MATLAB Simulin
 
 ---
 
-## С��руктура проекту / Project Structure
+## Структура проекту / Project Structure
 
 ```
 PV-Station-Digital-Twin/
@@ -239,7 +233,7 @@ MIT License - див. `LICENSE` файл для деталей
 
 ## Контактна інформація / Contact
 
-**Автор / Author:** Телипський Т.В. (Telipskiy T.V.)  
+**Автор / Author:** Denys Telipskyi 
 **GitHub:** [@telipskiy](https://github.com/telipskiy)  
 **E-mail:** 6349353+telipskiy@users.noreply.github.com  
 
