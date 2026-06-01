@@ -1,15 +1,17 @@
 %% ========================================================================
 %  DIGITAL TWIN: PV STATION - MAIN INITIALIZATION SCRIPT
 %  ========================================================================
-%  Author: PhD Research on PV Station Topology
-%  Date: 2025
+%  Author: Denys Telipskyi
+%  Date: 01.06.2026
 %  Subject: Initialization of all system parameters for MATLAB Simulink
 %  ========================================================================
 
-clear all; close all; clc;
+clear all;
+close all; 
+clc;
 
 % ========================================================================
-% 0. ДОБАВИТИ ШЛЯХИ ДО ПРОЕКТУ
+% 0. ДОДАТИ ШЛЯХИ ДО ПРОЕКТУ
 % ========================================================================
 
 project_root = pwd;
@@ -37,7 +39,7 @@ PV.Ns = 60;                     % Кількість елементів посл
 PV.Np = 1;                      % Кількість елементів паралельно (обичайно 1)
 
 % Температурні коефіцієнти
-PV.alpha_I = 0.0032;            % Коефіцієнт дл�� Isc [A/°C]
+PV.alpha_I = 0.0032;            % Коефіцієнт для Isc [A/°C]
 PV.beta_V = -0.123;             % Коефіцієнт для Voc [V/°C]
 PV.gamma_P = -0.5;              % Коефіцієнт для Pmax [%/°C]
 
@@ -51,11 +53,11 @@ PV.T_ref = 25;                              % Опорна температур�
 PV.G_ref = 1000;                            % Опорна радіація [W/m²]
 
 % КОНФІГУРАЦІЯ ПОЛЯ
-% Вектор змінних для оптимізації: n_s (модулів у рядку), n_p (паралельних рядків)
-PV.ns_default = 10;             % Модулів у рядку
-PV.np_default = 5;              % Паралельних рядків
+% Вектор змінних для оптимізації: n_s (модулів у ряді), n_p (паралельних рядів)
+PV.ns_default = 10;             % Модулів у ряді
+PV.np_default = 5;              % Паралельних рядів
 
-PV.Pfield_rated = PV.Pmax_stc * PV.ns_default * PV.np_default;  % [W]
+PV.Pfield_rated = PV.Pmax_stc * PV.ns_default * PV.np_default;   % [W]
 PV.Vfield_oc = PV.Voc_stc * PV.ns_default;                       % [V]
 PV.Ifield_sc = PV.Isc_stc * PV.np_default;                       % [A]
 PV.Vfield_mp = PV.Vmp_stc * PV.ns_default;                       % [V]
@@ -80,7 +82,7 @@ DCDC.C_out = 500e-6;            % Вихідна ємність [F]
 DCDC.fsw = 20e3;                % Частота комутування [Hz]
 DCDC.t_dead = 100e-9;           % Мертвий час [s]
 
-% MOSFET пара��етри
+% MOSFET параметри
 DCDC.MOSFET.Rds_on = 0.02;      % Опір в режимі провідження [Ω]
 DCDC.MOSFET.Vth = 2;            % Напруга пороку [V]
 
@@ -194,7 +196,7 @@ fprintf('Cable Resistance: %.4f Ω\n', CABLE.R);
 % ========================================================================
 
 % Часовий вектор (24 години, крок 15 хвилин)
-time_step = 15;                 % Крок [хвилин]
+time_step = 15;                               % Крок [хвилин]
 t_sim = (0:time_step:24*60-time_step)' * 60;  % Перевести в секунди
 n_samples = length(t_sim);
 
@@ -204,7 +206,7 @@ P_load_norm = 0.4 + 0.35*sin(2*pi*(hour-6)/24) + 0.15*randn(n_samples, 1);
 P_load_norm = max(0.2, min(1, P_load_norm));  % Клипування [0.2, 1.0]
 Q_load_norm = P_load_norm * tan(acos(0.95));  % cos(φ) = 0.95
 
-LOAD.P_base = 30e3;             % Базове активне навантаження [W]
+LOAD.P_base = 30e3;                           % Базове активне навантаження [W]
 LOAD.Q_base = LOAD.P_base * tan(acos(0.95));  % [VAR]
 
 LOAD.P_demand = LOAD.P_base * P_load_norm;
@@ -233,7 +235,7 @@ for i = 1:n_samples
     end
 end
 
-SOLAR.G_profile = G_profile;    % [W/m²]
+SOLAR.G_profile = G_profile;                                         % [W/m²]
 SOLAR.T_cell = 25 + 30*(G_profile/G_max).^2 + 5*randn(n_samples,1);  % Температура елемента
 SOLAR.T_cell = max(0, SOLAR.T_cell);
 
@@ -247,8 +249,8 @@ fprintf('Average Irradiance (6-18h): %.0f W/m²\n', mean(SOLAR.G_profile(hour>=6
 
 % X = [n_s, n_p, n_inv, P_inv, S_tr, U_mv, A_top, L_cab]
 % де:
-%   n_s     - модулів у рядку (5-20)
-%   n_p     - паралельних рядків (2-20)
+%   n_s     - модулів у ряді (5-20)
+%   n_p     - паралельних рядів (2-20)
 %   n_inv   - кількість інвертрів (1-3)
 %   P_inv   - потужність інвертора (25-100 kW)
 %   S_tr    - потужність трансформатора (25-100 kVA)
@@ -286,9 +288,9 @@ fprintf('Power Quality Weight: %.3f\n', WEIGHT.w_pq);
 % 9. ЕКОНОМІЧНІ ПАРАМЕТРИ
 % ========================================================================
 
-ECONOMICS.study_period = 20;    % років
-ECONOMICS.discount_rate = 0.08; % %
-ECONOMICS.inflation_rate = 0.02; % %
+ECONOMICS.study_period = 20;      % років
+ECONOMICS.discount_rate = 0.08;   % %
+ECONOMICS.inflation_rate = 0.02;  % %
 
 % Вартість компонентів (USD/kW або USD/кВА)
 ECONOMICS.C_PV = 500;           % $/kW (модулі)
@@ -322,25 +324,7 @@ fprintf('Solver: %s\n', SIM.solver);
 fprintf('Mode: %s\n', SIM.mode);
 
 % ========================================================================
-% 11. ЗБЕРЕЖЕННЯ ВСІХ ПАРАМЕТРІВ
-% ========================================================================
-
-% Збереження в структурі даних
-save('pv_station_parameters.mat', 'PV', 'DCDC', 'INV', 'TR', 'GRID', 'CABLE', ...
-    'LOAD', 'SOLAR', 'X_opt', 'WEIGHT', 'ECONOMICS', 'SIM', 'SITE', 't_sim', 'hour');
-
-disp(' ');
-disp('=========================================================================');
-disp('✓ INITIALIZATION COMPLETE');
-disp('=========================================================================');
-disp('All parameters saved to: pv_station_parameters.mat');
-disp(' ');
-disp('Next step: Run simulation with:');
-disp('  >> sim(''PV_Station_Main'')');
-disp(' ');
-
-% ========================================================================
-% 12. ПАРАМЕТРИ МІСЦЕПОЛОЖЕННЯ (для MPPT і прогнозу)
+% 11. ПАРАМЕТРИ МІСЦЕПОЛОЖЕННЯ (для MPPT і прогнозу)
 % ========================================================================
 
 SITE.location = 'Ukraine, Kyiv';
@@ -351,6 +335,31 @@ SITE.tz_offset = 2;             % Часовий пояс UTC+2
 
 disp('Site Location: Ukraine, Kyiv');
 disp(['Latitude: ' num2str(SITE.latitude) '°N, Longitude: ' num2str(SITE.longitude) '°E']);
+
+% ========================================================================
+% 12. ЗБЕРЕЖЕННЯ ВСІХ ПАРАМЕТРІВ
+% ========================================================================
+
+% Збереження в структурі даних
+save('pv_station_parameters.mat', 'PV', 'DCDC', 'INV', 'TR', 'GRID', 'CABLE', ...
+'LOAD', 'SOLAR', 'X_opt', 'WEIGHT', 'ECONOMICS', 'SIM', 'SITE', 't_sim', 'hour');
+
+disp(' ');
+disp('=========================================================================');
+disp('✓ INITIALIZATION COMPLETE');
+disp('All parameters saved to: pv_station_parameters.mat');
+disp(' ');
+disp('=========================================================================');
+disp('-> Next steps:');
+disp(' ');
+disp('Build models:');
+disp('  >> build_pv_array_subsystem(''SavePath'', ''./simulink_models'')');
+disp('  >> build_inverter_subsystem(''SavePath'', ''./simulink_models'')');
+disp('  >> build_main_model(''SavePath'', ''./simulink_models'')');
+disp(' ');
+disp('Run simulation with:');
+disp('  >> sim(''PV_Station_Main'')');
+disp(' ');
 
 %% ========================================================================
 % КІНЕЦЬ ІНІЦІАЛІЗАЦІЇ

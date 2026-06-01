@@ -49,6 +49,8 @@ generate_comprehensive_report();
 cd /path/to/PV-Station-Digital-Twin
 
 % Step 2: Add paths
+addpath(genpath('./data'));
+addpath(genpath('./docs'));
 addpath(genpath('./matlab_scripts'));
 addpath(genpath('./simulink_models'));
 
