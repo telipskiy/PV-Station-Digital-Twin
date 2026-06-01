@@ -2,35 +2,47 @@
 
 ## PV Station Digital Twin - MATLAB R2025a
 
-**Date:** 2026-05-28  
-**Platform:** macOS with Apple Silicon (ARM64)  
-**MATLAB:** R2025a  
-**Academic Level:** PhD (G3 - Electrical Engineering)  
+---
+
+## Швидкий старт / Quick Start
+
+### 1. Ініціалізація
+```matlab
+% Додати шляхи та завантажити параметри
+cd /path/to/PV-Station-Digital-Twin
+init_pv_station_main
+```
+
+### 2. Запуск однієї симуляції
+```matlab
+% Симулювати однієї конфігурації
+sim('PV_Station_Main')
+```
+
+### 3. Запуск дослідження чутливості
+```matlab
+% Параметричне дослідження всіх комбінацій
+results = run_simulation_suite();
+```
+
+### 4. Оптимізація топології
+```matlab
+% Багатокритеріальна оптимізація з Genetic Algorithm
+[X_opt, Fopt] = optimize_topology();
+```
+
+### 5. Аналіз результатів
+```matlab
+% Створити виходи для аналізу
+plot_analysis(results);
+generate_comprehensive_report();
+```
 
 ---
 
 ## Quick Start
 
-### 1. System Requirements
-
-```
-Operating System: macOS 12.0+
-Processor: Apple Silicon (M1, M2, M3, M4 or newer)
-RAM: 16 GB minimum, 32+ GB recommended
-Disk Space: 200 GB for models and results
-MATLAB: R2025a or newer
-```
-
-### 2. Required Toolboxes
-
-- Simulink
-- Simscape Electrical
-- Control System Toolbox
-- Optimization Toolbox (for GA)
-- Signal Processing Toolbox
-- Symbolic Math Toolbox
-
-### 3. Project Setup
+### Project Setup
 
 ```matlab
 % Step 1: Navigate to project directory
@@ -176,15 +188,3 @@ PV-Station-Digital-Twin/
 ├── docs/                        - Documentation
 └── reports/                     - Generated reports
 ```
-
----
-
-## License
-
-MIT License - See LICENSE file for details
-
----
-
-**Version:** 1.0  
-**Last Updated:** 2026-05-28  
-**Status:** Beta Release

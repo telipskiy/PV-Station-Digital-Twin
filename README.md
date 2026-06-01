@@ -1,18 +1,17 @@
 # Цифровий Двійник Фотоелектричної Станції
 ## Digital Twin of PV Station
 
----
 
 ## Опис / Description
 
-Цей проект реалізує комплексний цифровий двійник фотоелектричної станції (СЕС) у середовищі **MATLAB Simulink** з використанням бібліотеки **Simscape Electrical**.
+Цей проект реалізує комплексний цифровий двійник сонячної електростанції станції (СЕС) у середовищі **MATLAB Simulink** з використанням бібліотеки **Simscape Electrical**.
 
 Digital twin system of photovoltaic (PV) station implemented in **MATLAB Simulink** using **Simscape Electrical** library.
 
 ### Ключові можливості / Key Features:
 
 ✅ **Багаторівнева ієрархічна архітектура** - Multi-level hierarchical architecture  
-✅ **Нелінійна модель ФВ поля** - Nonlinear PV array model (Single Diode)  
+✅ **Нелінійна модель фотоелектричного поля** - Nonlinear PV array model (Single Diode)  
 ✅ **Трьохфазний інвертор з PWM** - 3-phase inverter with PWM modulation  
 ✅ **Система управління (PLL, MPPT)** - Control system (PLL, MPPT)  
 ✅ **Трансформатор з урахуванням втрат** - Transformer model with losses  
@@ -21,6 +20,22 @@ Digital twin system of photovoltaic (PV) station implemented in **MATLAB Simulin
 ✅ **Економічна оцінка (LCOE)** - Economic evaluation (LCOE calculation)  
 ✅ **24-годинне моделювання** - 24-hour simulation cycle  
 ✅ **Порівняльний аналіз топологій** - Topology comparative analysis  
+
+- **• Архітектура: Багаторівнева ієрархічна модель (Рівні 0-3)
+- **• Симуляція: 24-годинний цикл у реальному часі/прискореному режимі
+- **• Оптимізація: Багатокритеріальна оптимізація з GA
+
+### Ключові можливостіФункціональність:
+✅ **Моделювання різних топологій ФВ станцій**
+✅ **Автоматизована зміна конфігурації електричної схеми**
+✅ **Оцінювання техніко-економічних показників
+✅ **Визначення втрат електроенергії**
+✅ **Аналіз режимів роботи**
+✅ **Оцінювання показників якості електроенергії**
+✅ **Визначення інтегрального критерію оптимізації**
+✅ **Накопичення результатів чисельних експериментів**
+✅ **Візуалізація електричних параметрів**
+✅ **Автоматичне формування порівняльних характеристик**
 
 ---
 
@@ -64,61 +79,6 @@ PV-Station-Digital-Twin/
     ├── optimization_results.pdf
     ├── power_quality_analysis.pdf
     └── sensitivity_analysis.pdf
-```
-
----
-
-## Вимоги до системи / System Requirements
-
-### Програмне забезпечення / Software
-- **MATLAB**: R2023b або новіше
-- **Toolboxes**:
-  - Simulink
-  - Simscape Electrical
-  - Control System Toolbox
-  - Optimization Toolbox
-  - Signal Processing Toolbox
-
-### Апаратура / Hardware
-- **ОЗУ**: 32 ГБ (мінімум), 64 ГБ (рекомендовано)
-- **CPU**: Intel Core i7/i9 або AMD Ryzen 7/9 (6+ ядер)
-- **HDD**: 200 ГБ для моделей та результатів
-- **GPU**: NVIDIA CUDA (опціонально, для прискорення)
-
----
-
-## Швидкий старт / Quick Start
-
-### 1. Ініціалізація
-```matlab
-% Додати шляхи та завантажити параметри
-cd /path/to/PV-Station-Digital-Twin
-init_pv_station_main
-```
-
-### 2. Запуск однієї симуляції
-```matlab
-% Симулювати однієї конфігурації
-sim('PV_Station_Main')
-```
-
-### 3. Запуск дослідження чутливості
-```matlab
-% Параметричне дослідження всіх комбінацій
-results = run_simulation_suite();
-```
-
-### 4. Оптимізація топології
-```matlab
-% Багатокритеріальна оптимізація з Genetic Algorithm
-[X_opt, Fopt] = optimize_topology();
-```
-
-### 5. Аналіз результатів
-```matlab
-% Створити виходи для аналізу
-plot_analysis(results);
-generate_comprehensive_report();
 ```
 
 ---
@@ -206,6 +166,20 @@ Fopt = w1·Fcap + w2·Floss + w3·Frel + w4·Fopex + w5·Fpq → min
 
 ---
 
+## Вимоги до системи / System Requirements
+
+### Програмне забезпечення / Software
+- **Платформа**: macOS з Apple Silicon (M1/M2/M3/M4+)
+- **MATLAB**: R2025a або новіше
+- **Toolboxes**:
+  - Simulink
+  - Simscape Electrical
+  - Control System Toolbox
+  - Optimization Toolbox
+  - Signal Processing Toolbox
+
+---
+
 ## Статус розробки / Development Status
 
 | Компонент | Статус | Прогрес |
@@ -225,20 +199,46 @@ Fopt = w1·Fcap + w2·Floss + w3·Frel + w4·Fopex + w5·Fpq → min
 
 ---
 
-## Ліцензія / License
+Наступні кроки:
+1    Розробити Simulink моделі - використовуйте створені скрипти як основу
+2    Налаштувати параметри - редагуйте init_pv_station_main.m під ваші потреби
+3    Запустити симуляцію - команда: sim('PV_Station_Main')
+4    Аналізувати результати - використовуйте plot_analysis.m
 
-MIT License - див. `LICENSE` файл для деталей
+Q3 2026:
+✅ Рефакторинг коду в OOP
+✅ Unit tests (>80% coverage)
+✅ Документація API
+✅ Публікація у MATLAB File Exchange
 
----
+Q4 2026:
+⏳ Machine Learning MPPT
+⏳ Advanced PQ analysis
+⏳ Cloud integration
+⏳ Performance benchmarking
 
-## Контактна інформація / Contact
+Q1 2027:
+⏳ Real-time hardware integration
+⏳ HIL (Hardware-in-the-Loop) testing
+⏳ FPGA code generation
+⏳ Industrial certification prep
 
-**Автор / Author:** Denys Telipskyi 
-**GitHub:** [@telipskiy](https://github.com/telipskiy)  
-**E-mail:** 6349353+telipskiy@users.noreply.github.com  
+КРИТИЧНІ ПОКРАЩЕННЯ (ПРІОРИТЕТ)
+🔴 HIGH PRIORITY:
+✅ Об'єктно-орієнтоване проектування - перепишіть на класи
+✅ Валідація вхідних даних - перевірка параметрів
+✅ Обробка помилок - try-catch в критичних місцях
+✅ Логування - додати систему логування
+✅ Unit тести - покриття >70%
 
----
+🟡 MEDIUM PRIORITY:
+Паралельне обчислення - GA speedup 5-8x
+Адаптивний MPPT - Fuzzy або ML
+Розширений аналіз PQ - 20+ метрик
+Детекція відмов - real-time diagnostics
 
-**Версія / Version:** 1.0  
-**Дата оновлення / Last Updated:** 2026-05-26  
-**Статус / Status:** Beta Release  
+🟢 LOW PRIORITY:
+GPU acceleration - для FFT
+Cloud integration - AWS/Azure
+Web dashboard - візуалізація онлайн
+Mobile app - контроль на мобілці
