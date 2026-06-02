@@ -9,7 +9,7 @@
 ### 1. Ініціалізація
 ```matlab
 % Додати шляхи та завантажити параметри
-cd /path/to/PV-Station-Digital-Twin
+cd /Users/denis/Documents/MATLAB/PV-Station-Digital-Twin
 init_pv_station_main
 ```
 
@@ -46,7 +46,7 @@ generate_comprehensive_report();
 
 ```matlab
 % Step 1: Navigate to project directory
-cd /path/to/PV-Station-Digital-Twin
+cd /Users/denis/Documents/MATLAB/PV-Station-Digital-Twin
 
 % Step 2: Add paths
 addpath(genpath('./data'));

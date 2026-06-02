@@ -71,12 +71,12 @@ function test_compatibility()
     fprintf('──────────────────────────\n');
     
     required_toolboxes = {
-        'Simulink';
-        'Simscape';
-        'Simscape Electrical';
-        'Control System Toolbox';
-        'Optimization Toolbox';
-        'Signal Processing Toolbox';
+        'Simulink';     % Simulink
+        'Simscape';     % Simscape
+        'sps';          % Simscape Electrical
+        'control';      % Control System Toolbox
+        'optim';        % Optimization Toolbox
+        'signal';       % Signal Processing Toolbox
     };
     
     test3_pass = true;
@@ -186,7 +186,7 @@ function test_compatibility()
     fprintf('\n');
     
     fprintf('Test Results:\n');
-    fprintf('   Test 1 (MATLAB Version):    %s\n', iff(test1_pass, '✓ PASS', '✗ FAIL'));
+    fprintf('   Test 1 (MATLAB Version):   %s\n', iff(test1_pass, '✓ PASS', '✗ FAIL'));
     fprintf('   Test 2 (Platform):         %s\n', iff(test2_pass, '✓ PASS', '✗ FAIL'));
     fprintf('   Test 3 (Toolboxes):        %s\n', iff(test3_pass, '✓ PASS', '✗ FAIL'));
     fprintf('   Test 4 (Project Structure):%s\n', iff(test4_pass, '✓ PASS', '✗ FAIL'));
