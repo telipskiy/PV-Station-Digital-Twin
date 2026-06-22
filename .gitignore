@@ -1,0 +1,46 @@
+# MATLAB files
+*.m~
+*.asv
+*.slxc
+*.slx~
+*.mdl~
+
+# Simulink generated files
+slprj/
+rtw/
+codegen/
+*.pdb
+*.exe
+*.dll
+*.so
+
+# MATLAB cache
+*.mat
+slprj/*
+slprj/**/*
+
+# Logs and data
+logs/
+*.log
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Results
+results/
+*.xlsx
+*.csv
+
+# Temporary files
+tmp/
+temp/
+*.tmp
