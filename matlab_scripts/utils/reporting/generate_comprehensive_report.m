@@ -1,8 +1,8 @@
 %% ========================================================================
-%  POST PROCESSING - STATISTICAL ANALYSIS AND REPORTING
+%  DIGITAL TWIN: REPORTING - Generate comprehensive reports
 %  ========================================================================
-%  Purpose: Generate comprehensive reports and statistical analysis
-%  Date: 2025
+%  Author: Denys Telipskyi
+%  Date: 01.06.2026
 %  ========================================================================
 
 function generate_comprehensive_report()
@@ -51,9 +51,4 @@ function generate_comprehensive_report()
     disp(' ');
     disp('Results exported to: comprehensive_analysis_results.xlsx');
     
-end
-
-function export_results_to_excel(results_table, filename)
-    writetable(results_table, filename);
-    fprintf('Results exported to: %s\n', filename);
 end
