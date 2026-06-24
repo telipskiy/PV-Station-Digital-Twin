@@ -1,54 +1,7 @@
 # Setup Guide for PV Station Digital Twin
 
-## Platform Information
-
-- **OS**: macOS (Monterey, Ventura, or Sonoma)
-- **Architecture**: Apple Silicon (ARM64)
-- **MATLAB Version**: R2025a
-- **Compatibility**: Native ARM64 support
-
----
-
-## Installation Steps
-
-### 1. MATLAB R2025a Setup on macOS
-
-```bash
-# Check MATLAB installation
-matlab -r "ver"
-
-# Verify toolboxes
-matlab -r "license('test', 'Simulink')"
-```
-
-### 2. Install Required Toolboxes
-
-Required toolboxes for this project:
-
-1. **Simulink**
-2. **Simscape Electrical**
-3. **Control System Toolbox**
-4. **Optimization Toolbox**
-5. **Signal Processing Toolbox**
-6. **Parallel Computing Toolbox** (optional, for speed-up)
-
-### 3. Verify Installation
-
-```bash
-# In MATLAB:
->> matlab.addons.toolbox.installedToolboxes
-```
-
----
 
 ## Project Setup
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/telipskiy/PV-Station-Digital-Twin.git
-cd PV-Station-Digital-Twin
-```
 
 ### 2. Configure MATLAB Startup
 
@@ -71,7 +24,7 @@ Or set in MATLAB:
 ```matlab
 % In MATLAB:
 >> cd /path/to/PV-Station-Digital-Twin
->> COMPATIBILITY_CHECK
+>> test_compatibility
 >> init_pv_station_main
 ```
 
@@ -83,7 +36,7 @@ Or set in MATLAB:
 
 ```matlab
 % 1. Check system compatibility
->> COMPATIBILITY_CHECK
+>> test_compatibility
 
 % 2. Create all models programmatically
 >> create_simulink_models
@@ -142,38 +95,3 @@ set_param('PV_Station_Main', 'SimulationMode', 'Accelerator');
 close all;
 ```
 
----
-
-## File Structure
-
-```
-PV-Station-Digital-Twin/
-├── matlab_scripts/
-│   ├── init_pv_station_main.m
-│   ├── create_simulink_models.m
-│   ├── load_simulink_models.m
-│   ├── configure_macos_compatibility.m
-│   └── run_complete_simulation.m
-│
-├── simulink_models/  (auto-generated)
-│   ├── PV_Station_Main.slx
-│   ├── PV_Array_Subsystem.slx
-│   ├── Inverter_Subsystem.slx
-│   ├── Transformer_Subsystem.slx
-│   └── Network_Subsystem.slx
-│
-├── data/
-│   └── pv_station_parameters.mat
-│
-├── startup_pv_station.m
-└── README.md
-```
-
----
-
-**Version:** 1.0  
-**Last Updated:** 2026-05-27  
-**Status:** Production Ready for MATLAB R2025a on macOS Apple Silicon
-
-
-"}, "path": "COMPATIBILITY_CHECK.m", "content": "%

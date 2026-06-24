@@ -20,11 +20,12 @@ function hModel = build_inverter_subsystem(varargin)
     addParameter(p, 'Simscape', true, @islogical);
     parse(p, varargin{:});
     
+    use_simscape = p.Results.Simscape;
     model_name = p.Results.ModelName;
     save_path = p.Results.SavePath;
-    use_simscape = p.Results.Simscape;
     
     fprintf('\n>> Building Inverter Subsystem Model...\n');
+    fprintf('   Use Simscape: %s\n', use_simscape);
     fprintf('   Model name: %s\n', model_name);
     fprintf('   Save path: %s\n', save_path);
     

@@ -36,7 +36,7 @@ function results_table = run_simulation_suite()
         scenarios.ns_values, scenarios.np_values, scenarios.Pinv_values, scenarios.topology_values);
     
     n_scenarios = numel(ns_grid);
-    disp(sprintf('Total Scenarios: %d', n_scenarios));
+    fprintf('Total Scenarios: %d\n', n_scenarios);
     
     results_table = table();
     scenario_count = 0;
@@ -103,7 +103,7 @@ function results_table = run_simulation_suite()
     save('simulation_results.mat', 'results_table');
     
     disp('=========================================================================');
-    disp(sprintf('Scenarios Simulated: %d', scenario_count));
+    fprintf('Scenarios Simulated: %d\n', scenario_count);
     disp('Results saved to: simulation_results.csv');
     disp('=========================================================================');
 

@@ -10,6 +10,14 @@ clear all;
 close all; 
 clc;
 
+disp(' ');
+disp('╔════════════════════════════════════════════════════════════════════╗');
+disp('║                                                                    ║');
+disp('║            PV STATION DIGITAL TWIN MAIN INITIALIZATION             ║');
+disp('║                                                                    ║');
+disp('╚════════════════════════════════════════════════════════════════════╝');
+disp(' ');
+
 % ========================================================================
 % 0. ДОДАТИ ШЛЯХИ ДО ПРОЕКТУ
 % ========================================================================
@@ -68,6 +76,7 @@ fprintf('Rated Power: %.1f kW\n', PV.Pfield_rated/1e3);
 fprintf('Number of Modules (series): %d\n', PV.ns_default);
 fprintf('Number of Strings (parallel): %d\n', PV.np_default);
 fprintf('Total Modules: %d\n', PV.ns_default * PV.np_default);
+fprintf('\n');
 
 % ========================================================================
 % 2. ПАРАМЕТРИ DC-DC BOOST КОНВЕРТЕРА
@@ -93,6 +102,7 @@ DCDC.Diode.Rs = 0.01;           % Послідовний опір [Ω]
 disp('=== DC-DC Boost Converter Parameters ===');
 fprintf('Output Voltage: %.0f V\n', DCDC.V_out);
 fprintf('Switching Frequency: %.0f kHz\n', DCDC.fsw/1e3);
+fprintf('\n');
 
 % ========================================================================
 % 3. ПАРАМЕТРИ ТРЬОХФАЗНОГО ІНВЕРТОРА
@@ -131,6 +141,7 @@ fprintf('Rated Power: %.1f kW\n', INV.P_rated/1e3);
 fprintf('DC Voltage: %.0f V\n', INV.V_dc_nominal);
 fprintf('Grid Frequency: %.0f Hz\n', INV.f_grid);
 fprintf('Switching Frequency: %.0f kHz\n', INV.fsw/1e3);
+fprintf('\n');
 
 % ========================================================================
 % 4. ПАРАМЕТРИ ТРАНСФОРМАТОРА (опціонально)
@@ -154,6 +165,7 @@ disp('=== Transformer Parameters ===');
 fprintf('Rated Power: %.0f kVA\n', TR.S_rated/1e3);
 fprintf('Voltage Ratio: %.1f/%.0f kV\n', TR.U1_rated, TR.U2_rated);
 fprintf('Short-circuit Voltage: %.1f %%\n', TR.Zk);
+fprintf('\n');
 
 % ========================================================================
 % 5. ПАРАМЕТРИ ЕЛЕКТРИЧНОЇ МЕРЕЖІ
@@ -190,6 +202,7 @@ fprintf('Grid Voltage: %.0f kV\n', GRID.U_rated);
 fprintf('Grid Frequency: %.0f Hz\n', GRID.f_rated);
 fprintf('Cable Length: %.2f km\n', CABLE.length);
 fprintf('Cable Resistance: %.4f Ω\n', CABLE.R);
+fprintf('\n');
 
 % ========================================================================
 % 6. ПРОФІЛЬ НАВАНТАЖЕННЯ (добовий цикл)
@@ -215,6 +228,7 @@ LOAD.Q_demand = LOAD.Q_base * Q_load_norm;
 disp('=== Load Profile ===');
 fprintf('Base Active Load: %.1f kW\n', LOAD.P_base/1e3);
 fprintf('Base Power Factor: 0.95\n');
+fprintf('\n');
 
 % ========================================================================
 % 7. ПРОФІЛЬ СОНЯЧНОЇ РАДІАЦІЇ (добовий цикл)
@@ -242,6 +256,7 @@ SOLAR.T_cell = max(0, SOLAR.T_cell);
 disp('=== Solar Irradiance Profile ===');
 fprintf('Peak Irradiance: %.0f W/m²\n', max(SOLAR.G_profile));
 fprintf('Average Irradiance (6-18h): %.0f W/m²\n', mean(SOLAR.G_profile(hour>=6 & hour<=18)));
+fprintf('\n');
 
 % ========================================================================
 % 8. ВЕКТОР ЗМІННИХ ОПТИМІЗАЦІЇ
@@ -283,6 +298,7 @@ fprintf('Energy Loss Weight: %.3f\n', WEIGHT.w_loss);
 fprintf('Reliability Weight: %.3f\n', WEIGHT.w_rel);
 fprintf('OPEX Weight: %.3f\n', WEIGHT.w_opex);
 fprintf('Power Quality Weight: %.3f\n', WEIGHT.w_pq);
+fprintf('\n');
 
 % ========================================================================
 % 9. ЕКОНОМІЧНІ ПАРАМЕТРИ
@@ -306,6 +322,7 @@ disp('=== Economic Parameters ===');
 fprintf('Study Period: %d years\n', ECONOMICS.study_period);
 fprintf('Discount Rate: %.1f %%\n', ECONOMICS.discount_rate*100);
 fprintf('PV Cost: %.0f $/kW\n', ECONOMICS.C_PV);
+fprintf('\n');
 
 % ========================================================================
 % 10. ПАРАМЕТРИ СИМУЛЯЦІЇ
@@ -322,45 +339,41 @@ disp('=== Simulation Parameters ===');
 fprintf('Simulation Time: %.1f hours\n', (SIM.stop_time - SIM.start_time)/3600);
 fprintf('Solver: %s\n', SIM.solver);
 fprintf('Mode: %s\n', SIM.mode);
+fprintf('\n');
 
 % ========================================================================
 % 11. ПАРАМЕТРИ МІСЦЕПОЛОЖЕННЯ (для MPPT і прогнозу)
 % ========================================================================
 
-SITE.location = 'Ukraine, Kyiv';
-SITE.latitude = 50.45;          % °N
-SITE.longitude = 30.52;         % °E
-SITE.altitude = 179;            % m
+SITE.location = 'Ukraine, Dnipro';
+SITE.latitude = 48.46;          % °N
+SITE.longitude = 35.05;         % °E
+SITE.altitude = 155;            % m
 SITE.tz_offset = 2;             % Часовий пояс UTC+2
 
-disp('Site Location: Ukraine, Kyiv');
+disp('Site Location: Ukraine, Dnipro');
 disp(['Latitude: ' num2str(SITE.latitude) '°N, Longitude: ' num2str(SITE.longitude) '°E']);
+fprintf('\n');
 
 % ========================================================================
 % 12. ЗБЕРЕЖЕННЯ ВСІХ ПАРАМЕТРІВ
 % ========================================================================
 
 % Збереження в структурі даних
-save('pv_station_parameters.mat', 'PV', 'DCDC', 'INV', 'TR', 'GRID', 'CABLE', ...
+save('./data/pv_station_parameters.mat', 'PV', 'DCDC', 'INV', 'TR', 'GRID', 'CABLE', ...
 'LOAD', 'SOLAR', 'X_opt', 'WEIGHT', 'ECONOMICS', 'SIM', 'SITE', 't_sim', 'hour');
+
+% ========================================================================
+% РЕЗУЛЬТАТ
+% ========================================================================
 
 disp(' ');
 disp('=========================================================================');
 disp('✓ INITIALIZATION COMPLETE');
-disp('All parameters saved to: pv_station_parameters.mat');
-disp(' ');
+disp('All parameters saved to: ./data/pv_station_parameters.mat');
 disp('=========================================================================');
-disp('-> Next steps:');
-disp(' ');
-disp('Build models:');
-disp('  >> build_pv_array_subsystem(''SavePath'', ''./simulink_models'')');
-disp('  >> build_inverter_subsystem(''SavePath'', ''./simulink_models'')');
-disp('  >> build_main_model(''SavePath'', ''./simulink_models'')');
-disp(' ');
-disp('Run simulation with:');
-disp('  >> sim(''PV_Station_Main'')');
+disp('   Next steps:');
+disp('   1. Create models: >> create_simulink_models');
+disp('   2. Run simulation with: >> sim(''PV_Station_Main'')');
 disp(' ');
 
-%% ========================================================================
-% КІНЕЦЬ ІНІЦІАЛІЗАЦІЇ
-% ========================================================================

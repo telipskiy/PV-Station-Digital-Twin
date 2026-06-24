@@ -1,8 +1,9 @@
-%% ============================================================================
-% LOGGER - Система логування для проєкту
-% Version: 1.0
-% Date: 2026-06-01
-% ==============================================================================
+%% ========================================================================
+%  DIGITAL TWIN: LOGGER - Система логування для проєкту
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 01.06.2026
+%  ========================================================================
 
 classdef Logger < handle
     properties (Access = private)
@@ -108,7 +109,8 @@ classdef Logger < handle
             header = [header, sprintf('Start Time: %s\n', datetime('now'))];
             header = [header, sprintf('Platform: %s (%s)\n', computer, computer('arch'))];
             header = [header, sprintf('MATLAB: %s\n', version('-release'))];
-            header = [header, sprintf('%s\n', repmat('=', 1, 80))], header = [header, '\n'];
+            header = [header, sprintf('%s\n', repmat('=', 1, 80))]; 
+            header = [header, '\n'];
             
             fprintf(obj.fid, header);
             fprintf(header);

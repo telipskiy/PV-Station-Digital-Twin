@@ -1,17 +1,21 @@
+%% ========================================================================
+%  DIGITAL TWIN: LOAD AND CONFIGURE SIMULINK MODELS
 %  ========================================================================
-%  LOAD AND CONFIGURE SIMULINK MODELS
-%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 23.06.2026
+%  
 %  Purpose: Open and configure Simulink models after creation
-%  Platform: MATLAB R2025a on macOS with Apple Silicon
-%  Date: 2026-05-27
 %  ========================================================================
 
 function load_simulink_models()
     
+    clc;
     disp(' ');
-    disp('=========================================================================');
-    disp('LOADING SIMULINK MODELS');
-    disp('=========================================================================');
+    disp('╔════════════════════════════════════════════════════════════════════╗');
+    disp('║                                                                    ║');
+    disp('║                      LOADING SIMULINK MODELS                       ║');
+    disp('║                                                                    ║');
+    disp('╚════════════════════════════════════════════════════════════════════╝');
     disp(' ');
     
     % Change to simulink_models directory
@@ -39,7 +43,7 @@ function load_simulink_models()
     for i = 1:length(subsystems)
         try
             load_system(subsystems{i});
-            fprintf('✓ %s.slx loaded successfully', subsystems{i});
+            fprintf('✓ %s.slx loaded successfully\n', subsystems{i});
         catch e
             fprintf('Warning: Failed to load %s.slx: %s', subsystems{i}, e.message);
         end
