@@ -40,7 +40,7 @@ disp('2. Initialize parameters:');
 disp('   >> init_pv_station_main');
 disp(' ');
 disp('3. Create all Simulink models:');
-disp('   >> create_simulink_models');
+disp('   >> build_all_simulink_models');
 disp(' ');
 disp('4. Open main model:');
 disp('   >> open(''PV_Station_Main.slx'')');

@@ -91,7 +91,7 @@ function results_table = run_simulation_suite()
             results_table = [results_table; new_row];
             
         catch sim_error
-            warning(sprintf('Simulation failed for scenario %d', idx));
+            warning('Simulation failed for scenario %d', idx);
             continue;
         end
     end

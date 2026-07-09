@@ -15,7 +15,7 @@ Digital twin system of photovoltaic station implemented in **MATLAB Simulink** u
 
 ## Вимоги до системи / System Requirements
 
-- **Платформа**: macOS з Apple Silicon (M1/M2/M3/M4+)
+- **Платформа**: macOS з Apple Silicon
 - **MATLAB**: R2025a або новіше
 - **Toolboxes**:
   - Simulink

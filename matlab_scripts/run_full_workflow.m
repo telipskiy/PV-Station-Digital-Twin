@@ -50,7 +50,7 @@ function results = run_full_workflow(varargin)
         init_pv_station_main;
         fprintf('✓ Parameters initialized successfully\n\n');
     catch ME
-        warning('Failed to initialize parameters: %s', ME.message);
+        warning(ME.identifier, 'Failed to initialize parameters: %s', ME.message);
         return;
     end
     
@@ -73,7 +73,7 @@ function results = run_full_workflow(varargin)
         
         fprintf('✓ All models built successfully\n\n');
     catch ME
-        warning('Failed to build models: %s', ME.message);
+        warning(ME.identifier, 'Failed to build models: %s', ME.message);
         return;
     end
     
@@ -126,7 +126,7 @@ function results = run_full_workflow(varargin)
         results = extract_results(simout);
         
     catch ME
-        warning('Simulation failed: %s', ME.message);
+        warning(ME.identifier, 'Simulation failed: %s', ME.message);
         results = [];
         return;
     end
@@ -142,7 +142,7 @@ function results = run_full_workflow(varargin)
         analysis = analyze_results(results, params);
         fprintf('✓ Analysis completed\n\n');
     catch ME
-        warning('Analysis failed: %s', ME.message);
+        warning(ME.identifier, 'Analysis failed: %s', ME.message);
         analysis = [];
     end
     
@@ -157,7 +157,7 @@ function results = run_full_workflow(varargin)
         plot_analysis(results, analysis);
         fprintf('✓ Visualization created\n\n');
     catch ME
-        warning('Visualization failed: %s', ME.message);
+        warning(ME.identifier, 'Visualization failed: %s', ME.message);
     end
     
     % ====================================================================
@@ -172,7 +172,7 @@ function results = run_full_workflow(varargin)
             generate_report(results, analysis, params);
             fprintf('✓ Report generated\n\n');
         catch ME
-            warning('Report generation failed: %s', ME.message);
+            warning(ME.identifier, 'Report generation failed: %s', ME.message);
         end
     end
     
@@ -184,7 +184,7 @@ function results = run_full_workflow(varargin)
     
     fprintf('════════════════════════════════════════════════════════════════════\n');
     fprintf('   WORKFLOW COMPLETED SUCCESSFULLY\n');
-    fprintf('═════════════════���══════════════════════════════════════════════════\n');
+    fprintf('════════════════════════════════════════════════════════════════════\n');
     fprintf('\n');
     fprintf('Execution Time: %.2f seconds (%.2f minutes)\n', elapsed_time, elapsed_time/60);
     fprintf('Results Structure: %s\n', inputname(1));

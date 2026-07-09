@@ -44,8 +44,6 @@
 └───────────────────────────────────────────────────────────────┘
 ```
 
----
-
 ## 2. МАТЕМАТИЧНА ОСНОВА МОДЕЛІ
 
 ### 2.1 Структура системи (Рівняння 1 - Архітектура)
@@ -135,8 +133,6 @@ LCOE = Σ(t=0 to N) (C_t + O_t + M_t)/(1+r)^t / Σ(t=0 to N) E_t/(1+r)^t [$/кВ
   r - дисконтна ставка
   N - розраховуючий період (20-25 років)
 ```
-
----
 
 ## 3. РІВНІ ІЄРАРХІЇ МОДЕЛІ
 
@@ -230,8 +226,6 @@ subplot(2,3,6); bar(categories, [Fopt, LCOE, efficiency]);
 title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 ```
 
----
-
 ### **Рівень 1: Головна Simulink модель**
 
 **Назва файлу:** `PV_Station_Main.slx`
@@ -273,8 +267,6 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
    - Керує всіма підсистемами
    - Реалізує захист й обмеження
    - Формує рівні частотної модуляції (PWM)
-
----
 
 ### **Рівень 2: Підсистеми (Subsystems)**
 
@@ -318,8 +310,6 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 - `Rsh` = 415 Ω (шунтуючий опір)
 - `T_ref` = 25°C, `G_ref` = 1000 W/m²
 - `α_I` = 0.0032 A/°C, `β_V` = -0.123 V/°C
-
----
 
 #### **2.2 Inverter_Subsystem.slx**
 
@@ -376,8 +366,6 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 - `f_sw` = 10 kHz
 - `L_filter` = 5 mH, `C_filter` = 10 μF
 
----
-
 #### **2.3 Transformer_Subsystem.slx** (опціонально)
 
 ```
@@ -414,8 +402,6 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 - `Z_uk` = 6% (напруга к.з.)
 - `P_k0` = 500 W (втрати без навантаження)
 - `P_km` = 1100 W (втрати номіналу)
-
----
 
 #### **2.4 Network_Subsystem.slx**
 
@@ -461,8 +447,6 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 └───────────────────────────────────────────────┘
 ```
 
----
-
 ### **Рівень 3: Бібліотека компонентів Simscape Electrical**
 
 | Компонент | Модель | Параметри | Симscape блок |
@@ -477,8 +461,6 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 | **3-Ph AC Source** | Thevenin Equivalent | U_grid, f, Z_grid | `Fundamental > 3-Phase AC Source` |
 | **Voltage Sensor** | Ideal | Portability: Voltage | `Fundamental > Voltage Sensor` |
 | **Current Sensor** | Ideal | Portability: Current | `Fundamental > Current Sensor` |
-
----
 
 ## 4. СИСТЕМА ВИМІРЮВАННЯ ТА МОНІТОРИНГУ
 
@@ -524,8 +506,6 @@ THD_V = V_harmonics / V_fund * 100;   % [%]
 DeltaU = abs(V_rms - V_nom) / V_nom * 100;   % [%]
 ```
 
----
-
 ## 5. КОНФІГУРАЦІЯ СИМУЛЯЦІЇ
 
 - **Тип розв'язувача**: ode23tb (stiff) або ode45
@@ -534,73 +514,7 @@ DeltaU = abs(V_rms - V_nom) / V_nom * 100;   % [%]
 - **Час обчислення**: ~10-20 хвилин на конфігурацію
 - **Режим**: Accelerator Mode (рекомендується)
 
----
-
-## 6. ПРОЦЕС ЗАПУСКУ СИМУЛЯЦІЇ
-
-### 6.1 Іміціалізація
-```matlab
-% Крок 1: Добавити шляхи
-addpath(genpath('./matlab_scripts'));
-addpath(genpath('./simulink_models'));
-addpath(genpath('./simscape_library'));
-
-% Крок 2: Завантажити конфігурацію параметрів
-init_pv_station_main;
-
-% Крок 3: Встановити параметри топології
-X = [ns, np, Pinv, Str, Umv, Atop, Lcab];
-```
-
-### 6.2 Запуск однієї конфігурації
-```matlab
-% Запуск симуляції
-sim('PV_Station_Main');
-
-% Отримання результатів
-results = get(SIM_DATA, 'diagnostics');
-```
-
-### 6.3 Запуск оптимізації
-```matlab
-% Запуск генетичного алгоритму
-[X_opt, Fopt_min] = ga(@objective_function, ...
-    7, [], [], [], [], [5, 2, 25e3, 25e3, 0.4, 1, 0.5], ...
-    [20, 20, 100e3, 100e3, 20, 3, 2], @constraints);
-```
-
-### 6.4 Аналіз результатів
-```matlab
-% Порівняльна таблиця
-plot_analysis;
-
-% Експорт результатів
-save_to_excel;
-```
-
----
-
-## 7. ВАЛІДАЦІЯ ТА ВЕРИФІКАЦІЯ
-
-### 7.1 Unit Testing
-```matlab
-% Тест моделі ФВ модуля
-test_pv_model.m
-
-% Тест інвертора
-test_inverter_model.m
-
-% Тест MPPT алгоритму
-test_mppt_algorithm.m
-```
-
-### 7.2 Integration Testing
-```matlab
-% Комплексна валідація системи
-test_integrated_model.m
-```
-
-### 7.3 Еталонні результати
+## 6. Еталонні результати
 - **Ефективність інвертора**: 96-98%
 - **MPPT ефективність**: 99%
 - **Системна ефективність**: 75-85%
