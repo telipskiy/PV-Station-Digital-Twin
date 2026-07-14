@@ -61,124 +61,77 @@ Digital twin system of photovoltaic station implemented in **MATLAB Simulink** u
 
 ```
 PV-Station-Digital-Twin/
-├── README.md                    # Цей файл
 │
-├── matlab_scripts/              # MATLAB керуючі скрипти
-│   ├── init_pv_station_main.m  # Ініціалізація параметрів
-│   ├── optimize_topology.m     # Оптимізація топологій (GA)
-│   ├── run_simulation_suite.m  # Запуск серій експериментів
-│   ├── plot_analysis.m         # Візуалізація результатів
-│   ├── post_processing.m       # Пост-обробка даних
-│   └── helper_functions.m      # Допоміжні функції
+├── README.md                               # Цей файл
 │
-├── simulink_models/             # Simulink моделі
-│   ├── PV_Station_Main.slx     # Головна модель (Рівень 1)
-│   ├── PV_Array_Subsystem.slx  # ФВ поле (Рівень 2.1)
-│   ├── Inverter_Subsystem.slx  # Інвертор (Рівень 2.2)
-│   ├── Transformer_Subsystem.slx # Трансформатор (Рівень 2.3)
-│   └── Network_Subsystem.slx   # Мережа (Рівень 2.4)
+├── matlab_scripts/                         # MATLAB керуючі скрипти
+│   │
+│   ├── controllers/                        # Контроллери
+│   │   └── AdvancedMPPT.m                  # Контролер системи слідження точки максимуму потужності
+│   │
+│   ├── core/                               # Ядро
+│   │   ├── ConfigValidator.m               # Валідація конфігурації системи
+│   │   └── Logger.m                        # Система логування для проєкту
+│   │
+│   ├── models/                             # Моделі
+│   │   ├── GridModel.m                     # Модель електричної мережі
+│   │   ├── InverterModel.m                 # Удосконалена модель інвертора
+│   │   └── PVArrayModel.m                  # Удосконалена модель фотоелектричного поля
+│   │
+│   ├── tests/                              # Тести
+│   │   └── test_compatibility.m            # Перевірка валідності системи
+│   │
+│   ├── subsystems/                         # Старі скрипти створення підсистем (працюють з помилками виконання)
+│   │   ├── build_inverter_subsystem.m      # Створення підсистеми інвертора
+│   │   ├── build_main_model.m              # Створення головної системи
+│   │   └── build_pv_array_subsystem.m      # Створення пісистеми фотоелектричного поля
+│   │
+│   ├── utils/                              # Допоміжні функції
+│   │   │
+│   │   ├── diff/                           # Різне
+│   │   │   ├── compute_statistics.m        # Розрахунок статистики
+│   │   │   └── validate_configuration.m    # Перевірка конфігурації
+│   │   │
+│   │   ├── plotting/                       # Відображення результатів
+│   │   │   ├── plot_analysis.m             # Візуальний аналіз
+│   │   │   └── plot_time_series.m          # Візуальний аналіз серій
+│   │   │ 
+│   │   └── reporting/                      # Створення звітів
+│   │       ├── export_results_to_csv.m     # Експорт резултатів в .CSV файл
+│   │       ├── export_results_to_excel.m   # Експорт резултатів в Excel файл
+│   │       └── generate_comprehensive_report.m # Генерація повного звіту
+│   │  
+│   ├── build_all_simulink_models.m         # Програмна генерація Simulink-моделей
+│   ├── configure_system.m                  # Конфігурація системи
+│   ├── init_pv_station_main.m              # Ініціалізація параметрів
+│   ├── load_simulink_models.m              # завантаження та конфігурація Simulink-моделей
+│   ├── optimize_topology.m                 # Багатокритеріальна Оптимізація топологій (Genetic Algorithm)
+│   ├── run_complete_simulation.m           # Запуск повної симуляції
+│   ├── run_full_workflow.m                 # Запуск повного workflow
+│   ├── run_simulation_suite.m              # Запуск серій експериментів
+│   └── startup_pv_station.m                # Скрипт для автоматичної конфігурації проєкту 
 │
-├── data/                        # Дані та результати
-│   ├── solar_irradiance_profile.mat
-│   ├── temperature_profile.mat
-│   ├── load_profile.mat
-│   ├── simulation_results.xlsx
-│   └── optimization_results.xlsx
+├── simulink_models/                        # Simulink моделі (згенеровані скриптом build_all_simulink_models.m)
+│   ├── PV_Station_Main.slx                 # Головна модель (Рівень 1)
+│   ├── PV_Array_Subsystem.slx              # Фотоелектричне поле (Рівень 2.1)
+│   ├── Inverter_Subsystem.slx              # Інвертор (Рівень 2.2)
+│   ├── Transformer_Subsystem.slx           # Трансформатор (Рівень 2.3)
+│   └── Network_Subsystem.slx               # Мережа (Рівень 2.4)
 │
-├── docs/                        # Документація
-│   ├── ARCHITECTURE.md          # Архітектура системи
-│   ├── implementation_guide.md  # Керівництво реалізації
-│   └── parameter_specs.xlsx     # Специфікація параметрів
+├── data/                                   # Дані та результати
+│   ├── pv_station_parameters.mat           # Параметри фотоелектричної станції (згенеровані скриптом init_pv_station_main.m)
+│   ├── solar_irradiance_profile.mat        # Поки не реалізовано
+│   ├── temperature_profile.mat             # Поки не реалізовано
+│   ├── load_profile.mat                    # Поки не реалізовано
+│   ├── simulation_results.xlsx             # Поки не реалізовано
+│   └── optimization_results.xlsx           # Поки не реалізовано
 │
-└── reports/                     # Звіти й аналіз
-    ├── topology_comparison.pdf
-    ├── optimization_results.pdf
-    ├── power_quality_analysis.pdf
-    └── sensitivity_analysis.pdf
+├── examples/                               # Приклади Simulink (використовувати для покращення підсистем і моделей)
+│
+└── docs/                                   # Документація
+    ├── ARCHITECTURE.md                     # Опис архітектури системи
+    └── GETTING_STARTED.md                  # Керівництво з використання
 ```
-
-
----
-
-## ОПИСАННЯ ФАЙЛІВ ПРОЕКТУ
-
-```
-PV-Station-Digital-Twin/
-│
-├── README.md                          # Документація проекту
-├── ARCHITECTURE.md                    # Цей файл (архітектура)
-│
-├── /matlab_scripts/                   # Керуючі скрипти (Рівень 0)
-│   ├── init_pv_station_main.m        # Ініціалізація параметрів
-│   ├── optimize_topology.m           # Багатокритеріальна оптимізація
-│   ├── run_simulation_suite.m        # Запуск серій експериментів
-│   ├── plot_analysis.m               # Візуалізація результатів
-│   ├── post_processing.m             # Пост-обробка результатів
-│   ├── helper_functions.m            # Допоміжні функції
-│   └── config_parameters.m           # Глобальні параметри
-│
-├── /simulink_models/                  # Simulink моделі
-│   ├── PV_Station_Main.slx           # Головна модель (Рівень 1)
-│   ├── PV_Array_Subsystem.slx        # ФВ поле (Рівень 2.1)
-│   ├── Inverter_Subsystem.slx        # Інвертор (Рівень 2.2)
-│   ├── Transformer_Subsystem.slx     # Трансформатор (Рівень 2.3)
-│   └── Network_Subsystem.slx         # Мережа (Рівень 2.4)
-│
-├── /simscape_library/                 # Бібліотека компонентів (Рівень 3)
-│   ├── pv_module_model.m             # Модель ФВ модуля
-│   ├── inverter_control.m            # Контролер інвертора
-│   ├── mppt_algorithm.m              # MPPT алгоритм
-│   └── component_library.slx          # Переносна бібліотека
-│
-├── /data/                             # Дані та результати
-│   ├── solar_irradiance_profile.mat   # Профіль сонячної радіації
-│   ├── temperature_profile.mat        # Профіль температури
-│   ├── load_profile.mat               # Профіль навантаження
-│   ├── results_log.xlsx               # Таблиця результатів
-│   └── comparison_metrics.csv         # Порівняльні метрики
-│
-├── /reports/                          # Звіти й аналіз
-│   ├── topology_comparison.pdf        # Порівняння топологій
-│   ├── optimization_results.pdf       # Результати оптимізації
-│   ├── sensitivity_analysis.pdf       # Аналіз чутливості
-│   └── power_quality_analysis.pdf     # Якість електроенергії
-│
-└── /docs/                             # Додаткова документація
-    ├── mathematical_model.pdf         # Математична модель (PhD)
-    ├── implementation_guide.md        # Керівництво реалізації
-    ├── parameter_specifications.xlsx  # Специфікація параметрів
-    └── troubleshooting.md             # Ріш��ння проблем
-```
-
-
----
-
-## File Structure
-
-```
-PV-Station-Digital-Twin/
-├── matlab_scripts/
-│   ├── init_pv_station_main.m
-│   ├── create_simulink_models.m
-│   ├── load_simulink_models.m
-│   ├── configure_macos_compatibility.m
-│   └── run_complete_simulation.m
-│
-├── simulink_models/  (auto-generated)
-│   ├── PV_Station_Main.slx
-│   ├── PV_Array_Subsystem.slx
-│   ├── Inverter_Subsystem.slx
-│   ├── Transformer_Subsystem.slx
-│   └── Network_Subsystem.slx
-│
-├── data/
-│   └── pv_station_parameters.mat
-│
-├── startup_pv_station.m
-└── README.md
-```
-
----
 
 ## Математична модель / Mathematical Model
 

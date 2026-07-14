@@ -366,7 +366,7 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 - `f_sw` = 10 kHz
 - `L_filter` = 5 mH, `C_filter` = 10 μF
 
-#### **2.3 Transformer_Subsystem.slx** (опціонально)
+#### **2.3 Transformer_Subsystem.slx** 
 
 ```
 ┌─ Three-Phase Transformer Model ───────────────┐
@@ -449,7 +449,7 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 
 ### **Рівень 3: Бібліотека компонентів Simscape Electrical**
 
-| Компонент | Модель | Параметри | Симscape блок |
+| Компонент | Модель | Параметри | Simscape блок |
 |-----------|--------|-----------|--------------|
 | **PV Module** | Single Diode (1D) | I_ph0, I0, Rs, Rsh, n, α_I, β_V | `Foundation > Electrical > PV Source` |
 | **IGBT Transistor** | Ideal Switch + On-state | V_sat, R_on, f_sw | `Semiconductor > IGBT` |
