@@ -22,7 +22,7 @@ function build_all_models_enhanced()
     disp(' ');
     disp('╔════════════════════════════════════════════════════════════════════╗');
     disp('║                                                                    ║');
-    disp('║    BUILDING PV STATION DIGITAL TWIN - PhD-Level Models            ║');
+    disp('║    BUILDING PV STATION DIGITAL TWIN - PhD-Level Models             ║');
     disp('║    With Complete Signal Connections & PhD-Level Physics            ║');
     disp('║                                                                    ║');
     disp('╚════════════════════════════════════════════════════════════════════╝');

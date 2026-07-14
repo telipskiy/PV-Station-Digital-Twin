@@ -49,17 +49,17 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     % ====================================================================
     
     % Input 1: Solar irradiance [W/m²]
-    G_in = add_block('simulink/Sources/In1', [hModel '/G_Solar_in']);
+    G_in = add_block('simulink/Sources/In1', [model_name '/G_Solar_in']);
     set_param(G_in, 'Position', [20 50 50 70]);
     set_param(G_in, 'Port', '1');
     
     % Input 2: Cell temperature [°C]
-    T_in = add_block('simulink/Sources/In1', [hModel '/T_cell_in']);
+    T_in = add_block('simulink/Sources/In1', [model_name '/T_cell_in']);
     set_param(T_in, 'Position', [20 120 50 140]);
     set_param(T_in, 'Port', '2');
     
     % Input 3: Demanded voltage from boost converter [V]
-    V_boost_demand = add_block('simulink/Sources/In1', [hModel '/V_boost_demand']);
+    V_boost_demand = add_block('simulink/Sources/In1', [model_name '/V_boost_demand']);
     set_param(V_boost_demand, 'Position', [20 190 50 210]);
     set_param(V_boost_demand, 'Port', '3');
     
@@ -68,54 +68,54 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     % ====================================================================
     
     % Reference parameters (STC)
-    G_ref = add_block('simulink/Sources/Constant', [hModel '/G_ref_const']);
+    G_ref = add_block('simulink/Sources/Constant', [model_name '/G_ref_const']);
     set_param(G_ref, 'Value', '1000');
     set_param(G_ref, 'Position', [100 50 140 70]);
     
-    T_ref = add_block('simulink/Sources/Constant', [hModel '/T_ref_const']);
+    T_ref = add_block('simulink/Sources/Constant', [model_name '/T_ref_const']);
     set_param(T_ref, 'Value', '25');
     set_param(T_ref, 'Position', [100 90 140 110]);
     
     % Photocurrent calculation: I_ph = I_ph_ref * (G/G_ref) * [1 + alpha*(T-T_ref)]
     
     % G/G_ref ratio
-    G_ratio = add_block('simulink/Math Operations/Divide', [hModel '/G_ratio_div']);
+    G_ratio = add_block('simulink/Math Operations/Divide', [model_name '/G_ratio_div']);
     set_param(G_ratio, 'Position', [180 50 210 90]);
     
     % Temperature coefficient
-    alpha_I = add_block('simulink/Sources/Constant', [hModel '/alpha_I_const']);
+    alpha_I = add_block('simulink/Sources/Constant', [model_name '/alpha_I_const']);
     set_param(alpha_I, 'Value', '0.0032');  % Temperature coefficient for Isc
     set_param(alpha_I, 'Position', [180 120 210 140]);
     
     % T - T_ref
-    T_diff_sum = add_block('simulink/Math Operations/Sum', [hModel '/T_diff_sum']);
+    T_diff_sum = add_block('simulink/Math Operations/Sum', [model_name '/T_diff_sum']);
     set_param(T_diff_sum, 'Position', [260 100 290 140]);
     set_param(T_diff_sum, 'Inputs', '|+-');
     
     % alpha * (T - T_ref)
-    alpha_T_prod = add_block('simulink/Math Operations/Product', [hModel '/alpha_T_prod']);
+    alpha_T_prod = add_block('simulink/Math Operations/Product', [model_name '/alpha_T_prod']);
     set_param(alpha_T_prod, 'Position', [340 110 380 150]);
     
     % 1 + alpha*(T-T_ref)
-    temp_factor_sum = add_block('simulink/Math Operations/Sum', [hModel '/temp_factor_sum']);
+    temp_factor_sum = add_block('simulink/Math Operations/Sum', [model_name '/temp_factor_sum']);
     set_param(temp_factor_sum, 'Position', [420 100 450 140]);
     set_param(temp_factor_sum, 'Inputs', '|++');
     
-    one_const = add_block('simulink/Sources/Constant', [hModel '/one_const']);
+    one_const = add_block('simulink/Sources/Constant', [model_name '/one_const']);
     set_param(one_const, 'Value', '1');
     set_param(one_const, 'Position', [380 80 410 100]);
     
     % I_ph_ref
-    I_ph_ref = add_block('simulink/Sources/Constant', [hModel '/I_ph_ref_const']);
+    I_ph_ref = add_block('simulink/Sources/Constant', [model_name '/I_ph_ref_const']);
     set_param(I_ph_ref, 'Value', '9.68');  % 10% higher than Isc for all parallel strings
     set_param(I_ph_ref, 'Position', [100 200 140 220]);
     
     % I_ph = I_ph_ref * (G/G_ref) * temp_factor
-    I_ph_calc1 = add_block('simulink/Math Operations/Product', [hModel '/I_ph_calc1']);
+    I_ph_calc1 = add_block('simulink/Math Operations/Product', [model_name '/I_ph_calc1']);
     set_param(I_ph_calc1, 'Position', [260 160 300 200]);
     set_param(I_ph_calc1, 'Inputs', '**');
     
-    I_ph_calc2 = add_block('simulink/Math Operations/Product', [hModel '/I_ph_calc2']);
+    I_ph_calc2 = add_block('simulink/Math Operations/Product', [model_name '/I_ph_calc2']);
     set_param(I_ph_calc2, 'Position', [500 140 540 180]);
     set_param(I_ph_calc2, 'Inputs', '**');
     
@@ -126,12 +126,12 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     % I0 = I0_ref * (T/T_ref)^3 * exp[q*Eg0/(n*k) * (1/T_ref - 1/T)]
     % Simplified: I0 ≈ I0_ref * exp[gamma * (T - T_ref)]
     
-    I0_ref = add_block('simulink/Sources/Constant', [hModel '/I0_ref_const']);
+    I0_ref = add_block('simulink/Sources/Constant', [model_name '/I0_ref_const']);
     set_param(I0_ref, 'Value', '1e-10');
     set_param(I0_ref, 'Position', [100 260 140 280]);
     
     % Thermal voltage Vt = k*T/q ≈ 0.02586 V at 25°C * (T/T_ref)
-    Vt_scale = add_block('simulink/Math Operations/Gain', [hModel '/Vt_scale_gain']);
+    Vt_scale = add_block('simulink/Math Operations/Gain', [model_name '/Vt_scale_gain']);
     set_param(Vt_scale, 'Gain', '0.02586/25');
     set_param(Vt_scale, 'Position', [260 220 300 260]);
     
@@ -140,14 +140,14 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     % ====================================================================
     
     % V input port
-    V_pv_input = add_block('simulink/Sources/In1', [hModel '/V_pv_in']);
+    V_pv_input = add_block('simulink/Sources/In1', [model_name '/V_pv_in']);
     set_param(V_pv_input, 'Position', [20 300 50 320]);
     set_param(V_pv_input, 'Port', '4');
     
     % Current output (will be modified based on V and other parameters)
     % For now, simplified model: I ≈ I_ph (dominant term)
     
-    I_series = add_block('simulink/Continuous/Integrator', [hModel '/I_series_integrator']);
+    I_series = add_block('simulink/Continuous/Integrator', [model_name '/I_series_integrator']);
     set_param(I_series, 'Position', [580 140 620 180]);
     set_param(I_series, 'InitialCondition', '10.77');
     
@@ -156,17 +156,17 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     % ====================================================================
     
     % Input voltage to boost (from PV array)
-    V_in_boost = add_block('simulink/Sources/Constant', [hModel '/V_in_boost_const']);
+    V_in_boost = add_block('simulink/Sources/Constant', [model_name '/V_in_boost_const']);
     set_param(V_in_boost, 'Value', '325');  % Typical PV voltage (50 modules * 6.5V)
     set_param(V_in_boost, 'Position', [700 50 740 70]);
     
     % Boost converter output voltage reference
-    V_out_ref = add_block('simulink/Sources/Constant', [hModel '/V_out_ref_const']);
+    V_out_ref = add_block('simulink/Sources/Constant', [model_name '/V_out_ref_const']);
     set_param(V_out_ref, 'Value', '600');  % 600V DC link
     set_param(V_out_ref, 'Position', [700 120 740 140]);
     
     % Boost converter PWM (20 kHz switching frequency)
-    PWM_boost = add_block('simulink/Sources/Pulse Generator', [hModel '/PWM_boost']);
+    PWM_boost = add_block('simulink/Sources/Pulse Generator', [model_name '/PWM_boost']);
     set_param(PWM_boost, 'Amplitude', '1');
     set_param(PWM_boost, 'Period', '0.00005');  % 20 kHz
     set_param(PWM_boost, 'PulseWidth', '50');
@@ -175,36 +175,36 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     
     % Input inductor dynamics: L*di/dt = V_in - V_out + V_diode
     L_in_value = 5e-3;  % 5 mH
-    L_in_integrator = add_block('simulink/Continuous/Integrator', [hModel '/L_in_integrator']);
+    L_in_integrator = add_block('simulink/Continuous/Integrator', [model_name '/L_in_integrator']);
     set_param(L_in_integrator, 'Position', [820 50 860 90]);
     set_param(L_in_integrator, 'InitialCondition', '50');
     
     % Voltage drop across input inductor
-    L_in_gain = add_block('simulink/Math Operations/Gain', [hModel '/L_in_gain']);
+    L_in_gain = add_block('simulink/Math Operations/Gain', [model_name '/L_in_gain']);
     set_param(L_in_gain, 'Gain', sprintf('%e', L_in_value));  % Inductance value
     set_param(L_in_gain, 'Position', [780 50 810 90]);
     
     % Output capacitor dynamics: C*dv/dt = I_in - I_out
     C_out_value = 500e-6;  % 500 μF
-    C_out_integrator = add_block('simulink/Continuous/Integrator', [hModel '/C_out_integrator']);
+    C_out_integrator = add_block('simulink/Continuous/Integrator', [model_name '/C_out_integrator']);
     set_param(C_out_integrator, 'Position', [820 150 860 190]);
     set_param(C_out_integrator, 'InitialCondition', '600');
     
     % Voltage error for boost control: V_ref - V_out
-    V_error_sum = add_block('simulink/Math Operations/Sum', [hModel '/V_error_sum']);
+    V_error_sum = add_block('simulink/Math Operations/Sum', [model_name '/V_error_sum']);
     set_param(V_error_sum, 'Position', [900 100 930 140]);
     set_param(V_error_sum, 'Inputs', '|+-');
     
     % Boost PI controller
-    boost_pi = add_block('simulink/Continuous/PID Controller', [hModel '/Boost_PI_Control']);
+    boost_pi = add_block('simulink/Continuous/PID Controller', [model_name '/Boost_PI_Control']);
     set_param(boost_pi, 'P', '10');
     set_param(boost_pi, 'I', '50');
     set_param(boost_pi, 'D', '0');
-    set_param(boost_pi, 'Ts', '0');
+    set_param(boost_pi, 'TimeDomain', 'Continuous-time');
     set_param(boost_pi, 'Position', [980 100 1030 140]);
     
     % Duty cycle saturation
-    duty_sat = add_block('simulink/Continuous/Saturate', [hModel '/Duty_Saturation']);
+    duty_sat = add_block('simulink/Discontinuities/Saturation', [model_name '/Duty_Saturation']);
     set_param(duty_sat, 'UpperLimit', '0.9');
     set_param(duty_sat, 'LowerLimit', '0.1');
     set_param(duty_sat, 'Position', [1060 100 1090 140]);
@@ -214,49 +214,48 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     % ====================================================================
     
     % Power calculation: P = V * I
-    P_calc_mppt = add_block('simulink/Math Operations/Product', [hModel '/P_calc_mppt']);
+    P_calc_mppt = add_block('simulink/Math Operations/Product', [model_name '/P_calc_mppt']);
     set_param(P_calc_mppt, 'Position', [1150 50 1190 90]);
     set_param(P_calc_mppt, 'Inputs', '**');
     
     % MPPT logic: compare P(k) with P(k-1) and adjust V accordingly
     % Unit delay for P(k-1)
-    P_delay = add_block('simulink/Discrete/Unit Delay', [hModel '/P_delay']);
+    P_delay = add_block('simulink/Discrete/Unit Delay', [model_name '/P_delay']);
     set_param(P_delay, 'SampleTime', '1');
     set_param(P_delay, 'Position', [1230 80 1270 120]);
     
     % dP = P(k) - P(k-1)
-    dP_calc = add_block('simulink/Math Operations/Sum', [hModel '/dP_calc']);
+    dP_calc = add_block('simulink/Math Operations/Sum', [model_name '/dP_calc']);
     set_param(dP_calc, 'Position', [1310 50 1340 90]);
     set_param(dP_calc, 'Inputs', '|+-');
     
     % Unit delay for V(k-1)
-    V_delay = add_block('simulink/Discrete/Unit Delay', [hModel '/V_delay']);
+    V_delay = add_block('simulink/Discrete/Unit Delay', [model_name '/V_delay']);
     set_param(V_delay, 'SampleTime', '1');
     set_param(V_delay, 'Position', [1230 140 1270 180]);
     
     % dV = V(k) - V(k-1)
-    dV_calc = add_block('simulink/Math Operations/Sum', [hModel '/dV_calc']);
+    dV_calc = add_block('simulink/Math Operations/Sum', [model_name '/dV_calc']);
     set_param(dV_calc, 'Position', [1310 110 1340 150]);
     set_param(dV_calc, 'Inputs', '|+-');
     
     % MPPT reference voltage generator
-    mppt_ref_gen = add_block('simulink/Continuous/Integrator', [hModel '/MPPT_ref_gen']);
+    mppt_ref_gen = add_block('simulink/Continuous/Integrator', [model_name '/MPPT_ref_gen']);
     set_param(mppt_ref_gen, 'Position', [1380 100 1420 140]);
     set_param(mppt_ref_gen, 'InitialCondition', '325');
     
     % MPPT step size
-    mppt_step = add_block('simulink/Sources/Constant', [hModel '/MPPT_step_const']);
+    mppt_step = add_block('simulink/Sources/Constant', [model_name '/MPPT_step_const']);
     set_param(mppt_step, 'Value', '0.5');  % 0.5V step size
     set_param(mppt_step, 'Position', [1380 160 1420 180]);
     
     % MPPT logic: if dP > 0 and dV > 0, then increase V; else decrease V
-    mppt_logic = add_block('simulink/Logic and Bit Operations/Relational Operator', ...
-        [hModel '/MPPT_logic']);
+    mppt_logic = add_block('simulink/Logic and Bit Operations/Relational Operator', [model_name '/MPPT_logic']);
     set_param(mppt_logic, 'Operator', '>');
     set_param(mppt_logic, 'Position', [1460 80 1490 120]);
     
     % MPPT multiplier
-    mppt_mult = add_block('simulink/Math Operations/Product', [hModel '/MPPT_mult']);
+    mppt_mult = add_block('simulink/Math Operations/Product', [model_name '/MPPT_mult']);
     set_param(mppt_mult, 'Position', [1520 100 1560 140]);
     
     % ====================================================================
@@ -264,32 +263,32 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     % ====================================================================
     
     % Output 1: PV power [W]
-    P_pv_out = add_block('simulink/Sinks/Out1', [hModel '/P_pv_out']);
+    P_pv_out = add_block('simulink/Sinks/Out1', [model_name '/P_pv_out']);
     set_param(P_pv_out, 'Position', [1600 50 1630 70]);
     set_param(P_pv_out, 'Port', '1');
     
     % Output 2: PV voltage [V]
-    V_pv_out = add_block('simulink/Sinks/Out1', [hModel '/V_pv_out']);
+    V_pv_out = add_block('simulink/Sinks/Out1', [model_name '/V_pv_out']);
     set_param(V_pv_out, 'Position', [1600 120 1630 140]);
     set_param(V_pv_out, 'Port', '2');
     
     % Output 3: PV current [A]
-    I_pv_out = add_block('simulink/Sinks/Out1', [hModel '/I_pv_out']);
+    I_pv_out = add_block('simulink/Sinks/Out1', [model_name '/I_pv_out']);
     set_param(I_pv_out, 'Position', [1600 190 1630 210]);
     set_param(I_pv_out, 'Port', '3');
     
     % Output 4: DC link voltage [V]
-    V_dc_out = add_block('simulink/Sinks/Out1', [hModel '/V_dc_out']);
+    V_dc_out = add_block('simulink/Sinks/Out1', [model_name '/V_dc_out']);
     set_param(V_dc_out, 'Position', [1600 260 1630 280]);
     set_param(V_dc_out, 'Port', '4');
     
     % Output 5: DC link current [A]
-    I_dc_out = add_block('simulink/Sinks/Out1', [hModel '/I_dc_out']);
+    I_dc_out = add_block('simulink/Sinks/Out1', [model_name '/I_dc_out']);
     set_param(I_dc_out, 'Position', [1600 330 1630 350]);
     set_param(I_dc_out, 'Port', '5');
     
     % Output 6: DC power [W]
-    P_dc_out = add_block('simulink/Sinks/Out1', [hModel '/P_dc_out']);
+    P_dc_out = add_block('simulink/Sinks/Out1', [model_name '/P_dc_out']);
     set_param(P_dc_out, 'Position', [1600 400 1630 420]);
     set_param(P_dc_out, 'Port', '6');
     
@@ -325,8 +324,8 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
         add_line(hModel, 'L_in_gain/1', 'L_in_integrator/1');
         add_line(hModel, 'C_out_integrator/1', 'V_error_sum/1');
         add_line(hModel, 'V_out_ref_const/1', 'V_error_sum/2');
-        add_line(hModel, 'V_error_sum/1', 'boost_pi/1');
-        add_line(hModel, 'boost_pi/1', 'duty_sat/1');
+        add_line(hModel, 'V_error_sum/1', 'Boost_PI_Control/1');
+        add_line(hModel, 'Boost_PI_Control/1', 'Duty_Saturation/1');
         add_line(hModel, 'L_in_integrator/1', 'C_out_integrator/1');
         
         % MPPT connections

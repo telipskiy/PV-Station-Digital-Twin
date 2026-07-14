@@ -53,38 +53,38 @@ function hModel = build_main_model_enhanced(varargin)
     % ====================================================================
     
     % Solar irradiance profile (G profile)
-    G_profile = add_block('simulink/Sources/From Workspace', [hModel '/Solar_Profile']);
+    G_profile = add_block('simulink/Sources/From Workspace', [model_name '/Solar_Profile']);
     set_param(G_profile, 'VariableName', 'G_profile');
     set_param(G_profile, 'SampleTime', '60');  % 1-minute resolution
     set_param(G_profile, 'Position', [30 50 100 70]);
     
     % Temperature profile (T_cell)
-    T_profile = add_block('simulink/Sources/From Workspace', [hModel '/Temp_Profile']);
+    T_profile = add_block('simulink/Sources/From Workspace', [model_name '/Temp_Profile']);
     set_param(T_profile, 'VariableName', 'T_profile');
     set_param(T_profile, 'SampleTime', '60');
     set_param(T_profile, 'Position', [30 120 100 140]);
     
     % Load demand profile
-    Load_profile = add_block('simulink/Sources/From Workspace', [hModel '/Load_Profile']);
+    Load_profile = add_block('simulink/Sources/From Workspace', [model_name '/Load_Profile']);
     set_param(Load_profile, 'VariableName', 'Load_profile');
     set_param(Load_profile, 'SampleTime', '60');
     set_param(Load_profile, 'Position', [30 190 100 210]);
     
     % Load profile converter to currents (simplified: I = P / (sqrt(3) * V * cos(phi)))
-    I_load_scale = add_block('simulink/Math Operations/Gain', [hModel '/I_load_scale']);
+    I_load_scale = add_block('simulink/Math Operations/Gain', [model_name '/I_load_scale']);
     set_param(I_load_scale, 'Gain', '1/(230*sqrt(3)*0.95)');  % Convert W to A
     set_param(I_load_scale, 'Position', [140 180 180 220]);
     
     % Three-phase load split (for simulation)
-    I_load_a = add_block('simulink/Math Operations/Gain', [hModel '/I_load_a']);
+    I_load_a = add_block('simulink/Math Operations/Gain', [model_name '/I_load_a']);
     set_param(I_load_a, 'Gain', '1/3');
     set_param(I_load_a, 'Position', [220 160 260 200]);
     
-    I_load_b = add_block('simulink/Math Operations/Gain', [hModel '/I_load_b']);
+    I_load_b = add_block('simulink/Math Operations/Gain', [model_name '/I_load_b']);
     set_param(I_load_b, 'Gain', '1/3');
     set_param(I_load_b, 'Position', [220 230 260 270]);
     
-    I_load_c = add_block('simulink/Math Operations/Gain', [hModel '/I_load_c']);
+    I_load_c = add_block('simulink/Math Operations/Gain', [model_name '/I_load_c']);
     set_param(I_load_c, 'Gain', '1/3');
     set_param(I_load_c, 'Position', [220 300 260 340]);
     
@@ -93,26 +93,22 @@ function hModel = build_main_model_enhanced(varargin)
     % ====================================================================
     
     % PV Array Subsystem
-    pv_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', ...
-        [hModel '/PV_Array_Block']);
+    pv_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/PV_Array_Block']);
     set_param(pv_subsys, 'ReferencedSubsystem', 'PV_Array_Subsystem');
     set_param(pv_subsys, 'Position', [150 50 250 130]);
     
     % Inverter Subsystem
-    inv_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', ...
-        [hModel '/Inverter_Block']);
+    inv_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/Inverter_Block']);
     set_param(inv_subsys, 'ReferencedSubsystem', 'Inverter_Subsystem');
     set_param(inv_subsys, 'Position', [320 50 420 150]);
     
     % Transformer Subsystem
-    tr_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', ...
-        [hModel '/Transformer_Block']);
+    tr_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/Transformer_Block']);
     set_param(tr_subsys, 'ReferencedSubsystem', 'Transformer_Subsystem');
     set_param(tr_subsys, 'Position', [490 50 590 150]);
     
     % Network Subsystem
-    net_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', ...
-        [hModel '/Network_Block']);
+    net_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/Network_Block']);
     set_param(net_subsys, 'ReferencedSubsystem', 'Network_Subsystem');
     set_param(net_subsys, 'Position', [660 50 760 150]);
     
@@ -121,20 +117,20 @@ function hModel = build_main_model_enhanced(varargin)
     % ====================================================================
     
     % Power calculations
-    P_pv_calc = add_block('simulink/Math Operations/Product', [hModel '/P_pv_calc']);
+    P_pv_calc = add_block('simulink/Math Operations/Product', [model_name '/P_pv_calc']);
     set_param(P_pv_calc, 'Position', [300 200 340 240]);
     
-    P_inv_a_calc = add_block('simulink/Math Operations/Product', [hModel '/P_inv_a_calc']);
+    P_inv_a_calc = add_block('simulink/Math Operations/Product', [model_name '/P_inv_a_calc']);
     set_param(P_inv_a_calc, 'Position', [450 200 490 240]);
     
-    P_inv_b_calc = add_block('simulink/Math Operations/Product', [hModel '/P_inv_b_calc']);
+    P_inv_b_calc = add_block('simulink/Math Operations/Product', [model_name '/P_inv_b_calc']);
     set_param(P_inv_b_calc, 'Position', [450 280 490 320]);
     
-    P_inv_c_calc = add_block('simulink/Math Operations/Product', [hModel '/P_inv_c_calc']);
+    P_inv_c_calc = add_block('simulink/Math Operations/Product', [model_name '/P_inv_c_calc']);
     set_param(P_inv_c_calc, 'Position', [450 360 490 400]);
     
     % Sum three-phase power
-    P_inv_total = add_block('simulink/Math Operations/Sum', [hModel '/P_inv_total']);
+    P_inv_total = add_block('simulink/Math Operations/Sum', [model_name '/P_inv_total']);
     set_param(P_inv_total, 'Position', [530 240 570 320]);
     set_param(P_inv_total, 'Inputs', '|+++');
     
@@ -143,61 +139,61 @@ function hModel = build_main_model_enhanced(varargin)
     % ====================================================================
     
     % RMS voltage measurement
-    V_a_rms_calc = add_block('simulink/Math Operations/Gain', [hModel '/V_a_rms_calc']);
+    V_a_rms_calc = add_block('simulink/Math Operations/Gain', [model_name '/V_a_rms_calc']);
     set_param(V_a_rms_calc, 'Gain', '1/sqrt(2)');
     set_param(V_a_rms_calc, 'Position', [820 50 860 90]);
     
-    V_nom_const = add_block('simulink/Sources/Constant', [hModel '/V_nom_const']);
+    V_nom_const = add_block('simulink/Sources/Constant', [model_name '/V_nom_const']);
     set_param(V_nom_const, 'Value', '5773.5');
     set_param(V_nom_const, 'Position', [880 50 920 70]);
     
     % Voltage deviation: (V - V_nom) / V_nom * 100%
-    V_dev_error = add_block('simulink/Math Operations/Sum', [hModel '/V_dev_error']);
+    V_dev_error = add_block('simulink/Math Operations/Sum', [model_name '/V_dev_error']);
     set_param(V_dev_error, 'Position', [950 40 980 80]);
     set_param(V_dev_error, 'Inputs', '|+-');
     
-    V_dev_ratio = add_block('simulink/Math Operations/Divide', [hModel '/V_dev_ratio']);
+    V_dev_ratio = add_block('simulink/Math Operations/Divide', [model_name '/V_dev_ratio']);
     set_param(V_dev_ratio, 'Position', [1020 40 1060 80]);
     
-    V_dev_percent = add_block('simulink/Math Operations/Gain', [hModel '/V_dev_percent']);
+    V_dev_percent = add_block('simulink/Math Operations/Gain', [model_name '/V_dev_percent']);
     set_param(V_dev_percent, 'Gain', '100');
     set_param(V_dev_percent, 'Position', [1080 40 1120 80]);
     
     % Current RMS calculation
-    I_a_rms_calc = add_block('simulink/Math Operations/Gain', [hModel '/I_a_rms_calc']);
+    I_a_rms_calc = add_block('simulink/Math Operations/Gain', [model_name '/I_a_rms_calc']);
     set_param(I_a_rms_calc, 'Gain', '1/sqrt(2)');
     set_param(I_a_rms_calc, 'Position', [820 120 860 160]);
     
     % THD calculation (simplified - using harmonic content estimation)
     % THD ≈ sqrt(I_total² - I_1²) / I_1 * 100%
     % For now, using a constant approximation
-    THD_calc = add_block('simulink/Sources/Constant', [hModel '/THD_calc']);
+    THD_calc = add_block('simulink/Sources/Constant', [model_name '/THD_calc']);
     set_param(THD_calc, 'Value', '3');  % Typical THD ~3% for modern inverters
     set_param(THD_calc, 'Position', [1180 120 1220 140]);
     
     % Efficiency calculation
-    P_loss_trans = add_block('simulink/Sources/In1', [hModel '/P_loss_trans_in']);
+    P_loss_trans = add_block('simulink/Sources/In1', [model_name '/P_loss_trans_in']);
     set_param(P_loss_trans, 'Position', [600 400 630 420]);
     set_param(P_loss_trans, 'Port', '1');
     
-    P_loss_cable = add_block('simulink/Sources/In1', [hModel '/P_loss_cable_in']);
+    P_loss_cable = add_block('simulink/Sources/In1', [model_name '/P_loss_cable_in']);
     set_param(P_loss_cable, 'Position', [600 470 630 490]);
     set_param(P_loss_cable, 'Port', '2');
     
     % Total losses
-    P_total_losses = add_block('simulink/Math Operations/Sum', [hModel '/P_total_losses']);
+    P_total_losses = add_block('simulink/Math Operations/Sum', [model_name '/P_total_losses']);
     set_param(P_total_losses, 'Position', [680 420 720 490]);
     set_param(P_total_losses, 'Inputs', '|++');
     
     % System efficiency: η = P_out / P_in = (P_pv - P_loss) / P_pv
-    eta_num = add_block('simulink/Math Operations/Sum', [hModel '/eta_num']);
+    eta_num = add_block('simulink/Math Operations/Sum', [model_name '/eta_num']);
     set_param(eta_num, 'Position', [750 300 790 340]);
     set_param(eta_num, 'Inputs', '|+-');
     
-    eta_calc = add_block('simulink/Math Operations/Divide', [hModel '/eta_calc']);
+    eta_calc = add_block('simulink/Math Operations/Divide', [model_name '/eta_calc']);
     set_param(eta_calc, 'Position', [820 280 860 360]);
     
-    eta_percent = add_block('simulink/Math Operations/Gain', [hModel '/eta_percent']);
+    eta_percent = add_block('simulink/Math Operations/Gain', [model_name '/eta_percent']);
     set_param(eta_percent, 'Gain', '100');
     set_param(eta_percent, 'Position', [880 280 920 320]);
     
@@ -206,33 +202,33 @@ function hModel = build_main_model_enhanced(varargin)
     % ====================================================================
     
     % To Workspace blocks for post-processing
-    log_P_pv = add_block('simulink/Sinks/To Workspace', [hModel '/Log_P_pv']);
+    log_P_pv = add_block('simulink/Sinks/To Workspace', [model_name '/Log_P_pv']);
     set_param(log_P_pv, 'VariableName', 'P_pv_log');
     set_param(log_P_pv, 'SaveFormat', 'Structure with time');
     set_param(log_P_pv, 'Position', [1200 180 1280 220]);
     
-    log_P_inv = add_block('simulink/Sinks/To Workspace', [hModel '/Log_P_inv']);
+    log_P_inv = add_block('simulink/Sinks/To Workspace', [model_name '/Log_P_inv']);
     set_param(log_P_inv, 'VariableName', 'P_inv_log');
     set_param(log_P_inv, 'SaveFormat', 'Structure with time');
     set_param(log_P_inv, 'Position', [1200 250 1280 290]);
     
-    log_V_pcc = add_block('simulink/Sinks/To Workspace', [hModel '/Log_V_pcc']);
+    log_V_pcc = add_block('simulink/Sinks/To Workspace', [model_name '/Log_V_pcc']);
     set_param(log_V_pcc, 'VariableName', 'V_pcc_log');
     set_param(log_V_pcc, 'SaveFormat', 'Structure with time');
     set_param(log_V_pcc, 'Position', [1200 320 1280 360]);
     
-    log_eta = add_block('simulink/Sinks/To Workspace', [hModel '/Log_eta']);
+    log_eta = add_block('simulink/Sinks/To Workspace', [model_name '/Log_eta']);
     set_param(log_eta, 'VariableName', 'eta_log');
     set_param(log_eta, 'SaveFormat', 'Structure with time');
     set_param(log_eta, 'Position', [1200 390 1280 430]);
     
     % To File for external analysis
-    log_file = add_block('simulink/Sinks/To File', [hModel '/Log_File']);
+    log_file = add_block('simulink/Sinks/To File', [model_name '/Log_File']);
     set_param(log_file, 'Filename', 'pv_station_results.mat');
     set_param(log_file, 'Position', [1200 460 1280 500]);
     
     % Scope for visualization
-    scope = add_block('simulink/Sinks/Scope', [hModel '/Results_Scope']);
+    scope = add_block('simulink/Sinks/Scope', [model_name '/Results_Scope']);
     set_param(scope, 'Position', [1200 550 1280 590]);
     
     % ====================================================================
@@ -271,32 +267,27 @@ function hModel = build_main_model_enhanced(varargin)
         
         % Inverter outputs to Transformer
         for i = 1:3
-            add_line(hModel, sprintf('Inverter_Block/%d', i), ...
-                sprintf('Transformer_Block/%d', i));  % Phase voltages
+            add_line(hModel, sprintf('Inverter_Block/%d', i), sprintf('Transformer_Block/%d', i));  % Phase voltages
         end
         
         % Power calculations
         for i = 1:3
             power_block_names = {'P_inv_a_calc', 'P_inv_b_calc', 'P_inv_c_calc'};
-            add_line(hModel, sprintf('Inverter_Block/%d', i+3), ...
-                sprintf('%s/1', power_block_names{i}));  % Currents
+            add_line(hModel, sprintf('Inverter_Block/%d', i+3), sprintf('%s/1', power_block_names{i}));  % Currents
         end
         
         % Transformer inputs - currents from Inverter
         for i = 1:3
-            add_line(hModel, sprintf('Inverter_Block/%d', i+3), ...
-                sprintf('Transformer_Block/%d', i+3));  % Three-phase currents
+            add_line(hModel, sprintf('Inverter_Block/%d', i+3), sprintf('Transformer_Block/%d', i+3));  % Three-phase currents
         end
         
         % Transformer outputs to Network
         for i = 1:3
-            add_line(hModel, sprintf('Transformer_Block/%d', i), ...
-                sprintf('Network_Block/%d', i));  % Secondary voltages
+            add_line(hModel, sprintf('Transformer_Block/%d', i), sprintf('Network_Block/%d', i));  % Secondary voltages
         end
         
         for i = 1:3
-            add_line(hModel, sprintf('Transformer_Block/%d', i+3), ...
-                sprintf('Network_Block/%d', i));  % Secondary currents (as PCC currents)
+            add_line(hModel, sprintf('Transformer_Block/%d', i+3), sprintf('Network_Block/%d', i));  % Secondary currents (as PCC currents)
         end
         
         % Load currents to Network
