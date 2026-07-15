@@ -1,12 +1,12 @@
-%% ========================================================================
+%  ========================================================================
 %  DIGITAL TWIN: PV STATION - MAIN INITIALIZATION SCRIPT
 %  ========================================================================
 %  Author: Denys Telipskyi
 %  Date: 01.06.2026
-%  Subject: Initialization of all system parameters for MATLAB Simulink
+%  
+%  Purpose: Initialization of all system parameters for MATLAB Simulink
 %  ========================================================================
 
-clear all;
 close all; 
 clc;
 
@@ -373,7 +373,7 @@ disp('✓ INITIALIZATION COMPLETE');
 disp('All parameters saved to: ./data/pv_station_parameters.mat');
 disp('=========================================================================');
 disp('   Next steps:');
-disp('   1. Create models: >> create_simulink_models');
+disp('   1. Build all models: >> build_all_models');
 disp('   2. Run simulation with: >> sim(''PV_Station_Main'')');
 disp(' ');
 

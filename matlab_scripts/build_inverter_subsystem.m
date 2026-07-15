@@ -1,9 +1,9 @@
-%% ============================================================================
-% BUILD INVERTER_SUBSYSTEM - Enhanced with Complete Signal Connections
-% Version: 2.0 (PhD-level implementation)
-% Date: 2026-07-14
-% Platform: macOS with Apple Silicon, MATLAB R2025a
-%
+%  ========================================================================
+%  DIGITAL TWIN: BUILD INVERTER_SUBSYSTEM
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 2026-06-24
+%  
 % Description:
 %   Builds the 3-Phase Inverter Subsystem (Level 2.2) with complete signal routing.
 %   - 6-pulse 3-phase VSI with IGBT bridge
@@ -11,12 +11,12 @@
 %   - Space Vector Modulation (SVM) PWM generator
 %   - Phase-Locked Loop (PLL) for grid synchronization
 %   - Current controller (PI-based)
-%   - Complete signal connections for PhD-level simulation
+%   - Complete signal connections simulation
 %   
 % Output: Inverter_Subsystem.slx
-% ==============================================================================
+%  ========================================================================
 
-function hModel = build_inverter_subsystem_enhanced(varargin)
+function hModel = build_inverter_subsystem(varargin)
     
     % Parse input arguments
     p = inputParser;
@@ -26,12 +26,6 @@ function hModel = build_inverter_subsystem_enhanced(varargin)
     
     model_name = p.Results.ModelName;
     save_path = p.Results.SavePath;
-    
-    fprintf('\n╔════════════════════════════════════════════════════════════════╗\n');
-    fprintf('║  Building Enhanced Inverter Subsystem (PhD-level)            ║\n');
-    fprintf('╚════════════════════════════════════════════════════════════════╝\n\n');
-    fprintf('>> Model name: %s\n', model_name);
-    fprintf('>> Save path: %s\n', save_path);
     
     % Create new model
     hModel = new_system(model_name, 'Model');
@@ -383,6 +377,6 @@ function hModel = build_inverter_subsystem_enhanced(varargin)
     save_system(hModel, model_file, 'OverwriteIfChanged', true);
     
     fprintf('\n✓ Model saved: %s\n', model_file);
-    fprintf('✓ Inverter Subsystem built successfully (PhD-level)\n\n');
+    fprintf('✓ Inverter Subsystem built successfully\n\n');
     
 end

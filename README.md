@@ -55,52 +55,7 @@ Digital twin system of photovoltaic station implemented in **MATLAB Simulink** u
 ✅ **Візуалізація електричних параметрів**  
 ✅ **Автоматичне формування порівняльних характеристик**  
 
----
-
-## Структура проекту / Project Structure
-
-```
-PV-Station-Digital-Twin/
-├── README.md                    # Цей файл
-│
-├── matlab_scripts/              # MATLAB керуючі скрипти
-│   ├── init_pv_station_main.m  # Ініціалізація параметрів
-│   ├── optimize_topology.m     # Оптимізація топологій (GA)
-│   ├── run_simulation_suite.m  # Запуск серій експериментів
-│   ├── plot_analysis.m         # Візуалізація результатів
-│   ├── post_processing.m       # Пост-обробка даних
-│   └── helper_functions.m      # Допоміжні функції
-│
-├── simulink_models/             # Simulink моделі
-│   ├── PV_Station_Main.slx     # Головна модель (Рівень 1)
-│   ├── PV_Array_Subsystem.slx  # ФВ поле (Рівень 2.1)
-│   ├── Inverter_Subsystem.slx  # Інвертор (Рівень 2.2)
-│   ├── Transformer_Subsystem.slx # Трансформатор (Рівень 2.3)
-│   └── Network_Subsystem.slx   # Мережа (Рівень 2.4)
-│
-├── data/                        # Дані та результати
-│   ├── solar_irradiance_profile.mat
-│   ├── temperature_profile.mat
-│   ├── load_profile.mat
-│   ├── simulation_results.xlsx
-│   └── optimization_results.xlsx
-│
-├── docs/                        # Документація
-│   ├── ARCHITECTURE.md          # Архітектура системи
-│   ├── implementation_guide.md  # Керівництво реалізації
-│   └── parameter_specs.xlsx     # Специфікація параметрів
-│
-└── reports/                     # Звіти й аналіз
-    ├── topology_comparison.pdf
-    ├── optimization_results.pdf
-    ├── power_quality_analysis.pdf
-    └── sensitivity_analysis.pdf
-```
-
-
----
-
-## ОПИСАННЯ ФАЙЛІВ ПРОЕКТУ
+## ОПИС ФАЙЛІВ ПРОЕКТУ
 
 ```
 PV-Station-Digital-Twin/
@@ -149,36 +104,6 @@ PV-Station-Digital-Twin/
     ├── parameter_specifications.xlsx  # Специфікація параметрів
     └── troubleshooting.md             # Ріш��ння проблем
 ```
-
-
----
-
-## File Structure
-
-```
-PV-Station-Digital-Twin/
-├── matlab_scripts/
-│   ├── init_pv_station_main.m
-│   ├── create_simulink_models.m
-│   ├── load_simulink_models.m
-│   ├── configure_macos_compatibility.m
-│   └── run_complete_simulation.m
-│
-├── simulink_models/  (auto-generated)
-│   ├── PV_Station_Main.slx
-│   ├── PV_Array_Subsystem.slx
-│   ├── Inverter_Subsystem.slx
-│   ├── Transformer_Subsystem.slx
-│   └── Network_Subsystem.slx
-│
-├── data/
-│   └── pv_station_parameters.mat
-│
-├── startup_pv_station.m
-└── README.md
-```
-
----
 
 ## Математична модель / Mathematical Model
 
@@ -398,7 +323,7 @@ This version includes **complete PhD-level enhancements** with full signal conne
 ```
 G (irradiance) ──┐
                  ├─→ [Single Diode Model] ──→ P_pv, V_pv, I_pv
-T (temperature)─┤
+T (temperature)──┤
                  └─→ [MPPT Algorithm] ──→ V_dc (600V)
                      [DC-DC Boost Converter]
 ```

@@ -1,20 +1,20 @@
-%% ============================================================================
-% BUILD PV_ARRAY_SUBSYSTEM - Enhanced with Complete Signal Connections
-% Version: 2.0 (PhD-level implementation)
-% Date: 2026-07-14
-% Platform: macOS with Apple Silicon, MATLAB R2025a
-%
+%  ========================================================================
+%  DIGITAL TWIN: BUILD PV ARRAY SUBSYSTEM
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 2026-06-24
+%  
 % Description:
 %   Builds the PV Array Subsystem (Level 2.1) with complete signal routing.
 %   - Single Diode Model with temperature and irradiance dependency
 %   - DC-DC Boost Converter (250V → 600V)
 %   - MPPT Controller (Perturb & Observe algorithm)
-%   - Complete signal connections for PhD-level simulation
+%   - Complete signal connections for simulation
 %   
 % Output: PV_Array_Subsystem.slx
-% ==============================================================================
+%  ========================================================================
 
-function hModel = build_pv_array_subsystem_enhanced(varargin)
+function hModel = build_pv_array_subsystem(varargin)
     
     % Parse input arguments
     p = inputParser;
@@ -24,12 +24,6 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     
     model_name = p.Results.ModelName;
     save_path = p.Results.SavePath;
-    
-    fprintf('\n╔════════════════════════════════════════════════════════════════╗\n');
-    fprintf('║  Building Enhanced PV Array Subsystem (PhD-level)            ║\n');
-    fprintf('╚════════════════════════════════════════════════════════════════╝\n\n');
-    fprintf('>> Model name: %s\n', model_name);
-    fprintf('>> Save path: %s\n', save_path);
     
     % Create new model
     hModel = new_system(model_name, 'Model');
@@ -360,6 +354,6 @@ function hModel = build_pv_array_subsystem_enhanced(varargin)
     save_system(hModel, model_file, 'OverwriteIfChanged', true);
     
     fprintf('\n✓ Model saved: %s\n', model_file);
-    fprintf('✓ PV Array Subsystem built successfully (PhD-level)\n\n');
+    fprintf('✓ PV Array Subsystem built successfully\n\n');
     
 end

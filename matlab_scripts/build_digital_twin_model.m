@@ -1,9 +1,9 @@
-%% ============================================================================
-% BUILD MAIN MODEL - Enhanced with Complete Subsystem Integration
-% Version: 2.0 (PhD-level implementation)
-% Date: 2026-07-14
-% Platform: macOS with Apple Silicon, MATLAB R2025a
-%
+%  ========================================================================
+%  DIGITAL TWIN: BUILD MAIN MODEL
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 2026-06-24
+%  
 % Description:
 %   Builds the complete PV_Station_Main model (Level 1) with full integration.
 %   - Proper subsystem references and signal routing
@@ -11,12 +11,12 @@
 %   - Measurement and monitoring system
 %   - Power quality analysis blocks (THD, voltage deviation, etc.)
 %   - Data logging and visualization
-%   - Complete signal connections for PhD-level simulation
+%   - Complete signal connections for simulation
 %   
 % Output: PV_Station_Main.slx
-% ==============================================================================
+%  ========================================================================
 
-function hModel = build_main_model_enhanced(varargin)
+function hModel = build_digital_twin_model(varargin)
     
     % Parse input arguments
     p = inputParser;
@@ -26,12 +26,6 @@ function hModel = build_main_model_enhanced(varargin)
     
     model_name = p.Results.ModelName;
     save_path = p.Results.SavePath;
-    
-    fprintf('\n╔════════════════════════════════════════════════════════════════╗\n');
-    fprintf('║  Building Enhanced Main PV Station Model (PhD-level)         ║\n');
-    fprintf('╚════════════════════════════════════════════════════════════════╝\n\n');
-    fprintf('>> Model name: %s\n', model_name);
-    fprintf('>> Save path: %s\n', save_path);
     
     % Create new model
     hModel = new_system(model_name, 'Model');
@@ -92,24 +86,27 @@ function hModel = build_main_model_enhanced(varargin)
     % SUBSYSTEM REFERENCES
     % ====================================================================
     
-    % PV Array Subsystem
-    pv_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/PV_Array_Block']);
-    set_param(pv_subsys, 'ReferencedSubsystem', 'PV_Array_Subsystem');
+    % 'simulink/Ports & Subsystems/Subsystem Reference'
+    % set_param(pv_subsys, 'ReferencedSubsystem', 'PV_Array_Subsystem');
+
+    % PV Array Subsystem    
+    pv_subsys = add_block('simulink/Ports & Subsystems/Model', [model_name '/PV_Array_Block']);
+    set_param(pv_subsys, 'ModelName', 'PV_Array_Subsystem');
     set_param(pv_subsys, 'Position', [150 50 250 130]);
     
     % Inverter Subsystem
-    inv_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/Inverter_Block']);
-    set_param(inv_subsys, 'ReferencedSubsystem', 'Inverter_Subsystem');
+    inv_subsys = add_block('simulink/Ports & Subsystems/Model', [model_name '/Inverter_Block']);
+    set_param(inv_subsys, 'ModelName', 'Inverter_Subsystem');
     set_param(inv_subsys, 'Position', [320 50 420 150]);
     
     % Transformer Subsystem
-    tr_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/Transformer_Block']);
-    set_param(tr_subsys, 'ReferencedSubsystem', 'Transformer_Subsystem');
+    tr_subsys = add_block('simulink/Ports & Subsystems/Model', [model_name '/Transformer_Block']);
+    set_param(tr_subsys, 'ModelName', 'Transformer_Subsystem');
     set_param(tr_subsys, 'Position', [490 50 590 150]);
     
     % Network Subsystem
-    net_subsys = add_block('simulink/Ports & Subsystems/Subsystem Reference', [model_name '/Network_Block']);
-    set_param(net_subsys, 'ReferencedSubsystem', 'Network_Subsystem');
+    net_subsys = add_block('simulink/Ports & Subsystems/Model', [model_name '/Network_Block']);
+    set_param(net_subsys, 'ModelName', 'Network_Subsystem');
     set_param(net_subsys, 'Position', [660 50 760 150]);
     
     % ====================================================================
@@ -170,15 +167,6 @@ function hModel = build_main_model_enhanced(varargin)
     THD_calc = add_block('simulink/Sources/Constant', [model_name '/THD_calc']);
     set_param(THD_calc, 'Value', '3');  % Typical THD ~3% for modern inverters
     set_param(THD_calc, 'Position', [1180 120 1220 140]);
-    
-    % Efficiency calculation
-    P_loss_trans = add_block('simulink/Sources/In1', [model_name '/P_loss_trans_in']);
-    set_param(P_loss_trans, 'Position', [600 400 630 420]);
-    set_param(P_loss_trans, 'Port', '1');
-    
-    P_loss_cable = add_block('simulink/Sources/In1', [model_name '/P_loss_cable_in']);
-    set_param(P_loss_cable, 'Position', [600 470 630 490]);
-    set_param(P_loss_cable, 'Port', '2');
     
     % Total losses
     P_total_losses = add_block('simulink/Math Operations/Sum', [model_name '/P_total_losses']);
@@ -253,13 +241,13 @@ function hModel = build_main_model_enhanced(varargin)
         
         % Inverter inputs - Grid synchronization (will need Network feedback)
         % For now, using zero phase reference
-        phase_ref = add_block('simulink/Sources/Constant', [hModel '/phase_ref_const']);
-        set_param(phase_ref, 'Value', '0');
-        set_param(phase_ref, 'Position', [280 150 320 170]);
+        phase_ref_const = add_block('simulink/Sources/Constant', [model_name '/phase_ref_const']);
+        set_param(phase_ref_const, 'Value', '0');
+        set_param(phase_ref_const, 'Position', [280 150 320 170]);
         add_line(hModel, 'phase_ref_const/1', 'Inverter_Block/3');  % Phase reference
         
         % Grid voltage input (from Network)
-        grid_ref = add_block('simulink/Sources/Sine Wave', [hModel '/U_grid_ref']);
+        grid_ref = add_block('simulink/Sources/Sine Wave', [model_name '/U_grid_ref']);
         set_param(grid_ref, 'Amplitude', '8164.97');  % sqrt(2)*5773.5V
         set_param(grid_ref, 'Frequency', '50');
         set_param(grid_ref, 'Position', [280 190 320 210]);
@@ -286,9 +274,9 @@ function hModel = build_main_model_enhanced(varargin)
             add_line(hModel, sprintf('Transformer_Block/%d', i), sprintf('Network_Block/%d', i));  % Secondary voltages
         end
         
-        for i = 1:3
-            add_line(hModel, sprintf('Transformer_Block/%d', i+3), sprintf('Network_Block/%d', i));  % Secondary currents (as PCC currents)
-        end
+        %for i = 1:3
+        %    add_line(hModel, sprintf('Transformer_Block/%d', i+3), sprintf('Network_Block/%d', i));  % Secondary currents (as PCC currents)
+        %end
         
         % Load currents to Network
         add_line(hModel, 'I_load_scale/1', 'I_load_a/1');
@@ -308,10 +296,8 @@ function hModel = build_main_model_enhanced(varargin)
         add_line(hModel, 'V_dev_percent/1', 'Log_V_pcc/1');
         
         % Efficiency calculation
-        add_line(hModel, 'Transformer_Block/7', 'P_loss_trans_in/1');
-        add_line(hModel, 'Network_Block/4', 'P_loss_cable_in/1');
-        add_line(hModel, 'P_loss_trans_in/1', 'P_total_losses/1');
-        add_line(hModel, 'P_loss_cable_in/1', 'P_total_losses/2');
+        add_line(hModel, 'Transformer_Block/7', 'P_total_losses/1');
+        add_line(hModel, 'Network_Block/4', 'P_total_losses/2');
         add_line(hModel, 'P_pv_calc/1', 'eta_num/1');
         add_line(hModel, 'P_total_losses/1', 'eta_num/2');
         add_line(hModel, 'eta_num/1', 'eta_calc/1');
@@ -341,7 +327,6 @@ function hModel = build_main_model_enhanced(varargin)
     save_system(hModel, model_file, 'OverwriteIfChanged', true);
     
     fprintf('\n✓ Model saved: %s\n', model_file);
-    fprintf('✓ Main PV Station Model built successfully (PhD-level)\n\n');
-    fprintf('   Ready for 24-hour simulation!\n\n');
+    fprintf('✓ Main PV Station Model built successfully\n\n');
     
 end

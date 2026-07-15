@@ -1,9 +1,9 @@
-%% ============================================================================
-% BUILD NETWORK_SUBSYSTEM - Enhanced with Complete Signal Connections
-% Version: 2.0 (PhD-level implementation)
-% Date: 2026-07-14
-% Platform: macOS with Apple Silicon, MATLAB R2025a
-%
+%  ========================================================================
+%  DIGITAL TWIN: BUILD NETWORK_SUBSYSTEM
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 2026-06-24
+%  
 % Description:
 %   Builds the Network/Grid Subsystem (Level 2.4) with complete signal routing.
 %   - Grid voltage source (10 kV, 50 Hz, 3-phase)
@@ -11,12 +11,12 @@
 %   - Point of Common Coupling (PCC) voltage calculation
 %   - Load model (power flow)
 %   - Network frequency measurement
-%   - Complete signal connections for PhD-level simulation
+%   - Complete signal connections for simulation
 %   
 % Output: Network_Subsystem.slx
-% ==============================================================================
+%  ========================================================================
 
-function hModel = build_network_subsystem_enhanced(varargin)
+function hModel = build_network_subsystem(varargin)
     
     % Parse input arguments
     p = inputParser;
@@ -26,12 +26,6 @@ function hModel = build_network_subsystem_enhanced(varargin)
     
     model_name = p.Results.ModelName;
     save_path = p.Results.SavePath;
-    
-    fprintf('\n╔════════════════════════════════════════════════════════════════╗\n');
-    fprintf('║  Building Enhanced Network Subsystem (PhD-level)             ║\n');
-    fprintf('╚════════════════════════════════════════════════════════════════╝\n\n');
-    fprintf('>> Model name: %s\n', model_name);
-    fprintf('>> Save path: %s\n', save_path);
     
     % Create new model
     hModel = new_system(model_name, 'Model');
@@ -393,6 +387,6 @@ function hModel = build_network_subsystem_enhanced(varargin)
     save_system(hModel, model_file, 'OverwriteIfChanged', true);
     
     fprintf('\n✓ Model saved: %s\n', model_file);
-    fprintf('✓ Network Subsystem built successfully (PhD-level)\n\n');
+    fprintf('✓ Network Subsystem built successfully\n\n');
     
 end

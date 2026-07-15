@@ -1,4 +1,4 @@
-%% ========================================================================
+%  ========================================================================
 %  DIGITAL TWIN: LOAD AND CONFIGURE SIMULINK MODELS
 %  ========================================================================
 %  Author: Denys Telipskyi
@@ -33,12 +33,7 @@ function load_simulink_models()
     end
     
     % Load subsystems
-    subsystems = {...
-        'PV_Array_Subsystem', ...
-        'Inverter_Subsystem', ...
-        'Transformer_Subsystem', ...
-        'Network_Subsystem'
-    };
+    subsystems = {'Inverter_Subsystem', 'Network_Subsystem', 'PV_Array_Subsystem', 'Transformer_Subsystem'};
     
     for i = 1:length(subsystems)
         try

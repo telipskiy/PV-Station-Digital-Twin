@@ -1,5 +1,5 @@
-%% ========================================================================
-%  DIGITAL TWIN: TEST_COMPATIBILITY - Verify System for Digital Twin
+%  ========================================================================
+%  DIGITAL TWIN: TEST COMPATIBILITY - Verify System for Digital Twin
 %  ========================================================================
 %  Author: Denys Telipskyi
 %  Date: 28.05.2026
@@ -206,7 +206,7 @@ function test_compatibility()
         fprintf('   System is ready for PV Station Digital Twin simulation\n\n');
         fprintf('   Next steps:\n');
         fprintf('     1. >> init_pv_station_main\n');
-        fprintf('     2. >> build_all_simulink_models\n');
+        fprintf('     2. >> build_all_models\n');
         fprintf('     3. >> open(''PV_Station_Main.slx'')\n');
 
 

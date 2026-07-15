@@ -1,21 +1,21 @@
-%% ============================================================================
-% BUILD TRANSFORMER_SUBSYSTEM - Enhanced with Complete Signal Connections
-% Version: 2.0 (PhD-level implementation)
-% Date: 2026-07-14
-% Platform: macOS with Apple Silicon, MATLAB R2025a
-%
+%  ========================================================================
+%  DIGITAL TWIN: BUILD TRANSFORMER SUBSYSTEM
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 2026-06-24
+%  
 % Description:
 %   Builds the 3-Phase Transformer Subsystem (Level 2.3) with complete signal routing.
 %   - T-equivalent transformer model with core and copper losses
 %   - Magnetizing inductance (saturation effects)
 %   - Leakage impedance
 %   - Temperature-dependent resistance
-%   - Complete signal connections for PhD-level simulation
+%   - Complete signal connections for simulation
 %   
 % Output: Transformer_Subsystem.slx
-% ==============================================================================
+%  ========================================================================
 
-function hModel = build_transformer_subsystem_enhanced(varargin)
+function hModel = build_transformer_subsystem(varargin)
     
     % Parse input arguments
     p = inputParser;
@@ -25,13 +25,7 @@ function hModel = build_transformer_subsystem_enhanced(varargin)
     
     model_name = p.Results.ModelName;
     save_path = p.Results.SavePath;
-    
-    fprintf('\n╔════════════════════════════════════════════════════════════════╗\n');
-    fprintf('║  Building Enhanced Transformer Subsystem (PhD-level)         ║\n');
-    fprintf('╚════════════════════════════════════════════════════════════════╝\n\n');
-    fprintf('>> Model name: %s\n', model_name);
-    fprintf('>> Save path: %s\n', save_path);
-    
+
     % Create new model
     hModel = new_system(model_name, 'Model');
     load_system(hModel);
@@ -391,6 +385,6 @@ function hModel = build_transformer_subsystem_enhanced(varargin)
     save_system(hModel, model_file, 'OverwriteIfChanged', true);
     
     fprintf('\n✓ Model saved: %s\n', model_file);
-    fprintf('✓ Transformer Subsystem built successfully (PhD-level)\n\n');
+    fprintf('✓ Transformer Subsystem built successfully\n\n');
     
 end
