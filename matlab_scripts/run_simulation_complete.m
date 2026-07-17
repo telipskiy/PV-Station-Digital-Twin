@@ -1,9 +1,9 @@
-%% ============================================================================
-% RUN_SIMULATION_COMPLETE - Complete simulation workflow
-% Version: 2.0 (PhD-level)
-% Date: 2026-07-14
-% Platform: macOS with Apple Silicon, MATLAB R2025a
-%
+%  ========================================================================
+%  DIGITAL TWIN: Complete simulation workflow
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 2026-07-14
+%  
 % Description:
 %   Complete workflow for PV Station Digital Twin simulation:
 %   1. Initialize all system parameters
@@ -12,7 +12,7 @@
 %   4. Run 24-hour simulation
 %   5. Perform power quality and energy analysis
 %   6. Generate reports
-% ==============================================================================
+%  ========================================================================
 
 function run_simulation_complete()
     
