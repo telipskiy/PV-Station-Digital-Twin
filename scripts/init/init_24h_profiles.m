@@ -5,18 +5,11 @@
 %  Date: 2026-07-14
 %  
 %  Purpose: Function to generate sample 24-hour profiles
-%   
-%   Builds in order:
-%   1. Network_Subsystem - Grid model
-%   2. Transformer_Subsystem - Step-up transformer
-%   3. Inverter_Subsystem - 3-phase VSI with control
-%   4. PV_Array_Subsystem - Solar array with MPPT
-%   5. PV_Station_Main - Top-level integration
 %  ========================================================================
 
-function init_sample_profiles()
+function init_24h_profiles()
     
-    fprintf('\n>> Generating 24-hour solar irradiance profile...\n');
+    fprintf('Generating 24-hour solar irradiance profile...\n');
     
     % Time vector: 0 to 86400 seconds (24 hours), 1-minute resolution
     t = (0:60:86400)';
@@ -35,11 +28,11 @@ function init_sample_profiles()
     G_profile = G_profile + 20 * sin(t/1000);
     G_profile(G_profile < 0) = 0;
     
-    fprintf('  ✓ Solar profile: 0-%.0f W/m² (peak at noon)\n', max(G_profile));
+    fprintf('✓ Solar profile: 0-%.0f W/m² (peak at noon)\n', max(G_profile));
     
     % Cell temperature: Ambient + rise due to irradiance
     % T_cell ≈ T_amb + 0.05 * G (rough model)
-    fprintf('\n>> Generating 24-hour temperature profile...\n');
+    fprintf('\nGenerating 24-hour temperature profile...\n');
     
     % Ambient temperature: cool at night, warm during day
     T_amb = 20 + 10 * sin((t_hours - 6) * pi / 12);  % Min 10°C at 6:00, max 30°C at 18:00
@@ -49,10 +42,10 @@ function init_sample_profiles()
     T_profile = T_amb + 0.05 * G_profile;
     T_profile(T_profile > 60) = 60;  % Cap at 60°C
     
-    fprintf('  ✓ Temperature profile: %.0f-%.0f°C\n', min(T_profile), max(T_profile));
+    fprintf('✓ Temperature profile: %.0f-%.0f°C\n', min(T_profile), max(T_profile));
     
     % Load demand: typical daily pattern
-    fprintf('\n>> Generating 24-hour load profile...\n');
+    fprintf('\nGenerating 24-hour load profile...\n');
     
     % Low at night, peak in morning and evening
     Load_profile = 5000 + 8000 * sin((t_hours - 6) * pi / 12);  % 5-13 kW
@@ -60,7 +53,7 @@ function init_sample_profiles()
     Load_profile(t_hours >= 12 & t_hours <= 14) = Load_profile(t_hours >= 12 & t_hours <= 14) + 2000;  % Lunch peak
     Load_profile(Load_profile < 0) = 0;
     
-    fprintf('  ✓ Load profile: 0-%.0f W\n', max(Load_profile));
+    fprintf('✓ Load profile: 0-%.0f W\n', max(Load_profile));
     
     % Create time vector for Simulink
     time_vector = [t, ones(length(t), 1)];  % Time with ones for From Workspace
@@ -72,17 +65,17 @@ function init_sample_profiles()
     assignin('base', 't_sim', t);
     
     % Also save to MAT file for reference
-    data_dir = fileparts(fileparts(mfilename('fullpath')));
+    data_dir = fileparts(fileparts(fileparts(mfilename('fullpath'))));
     matfile = fullfile(data_dir, 'data', 'profiles_24h.mat');
     if ~exist(fullfile(data_dir, 'data'), 'dir')
         mkdir(fullfile(data_dir, 'data'));
     end
     
     save(matfile, 'G_profile', 'T_profile', 'Load_profile', 't');
-    fprintf('\n  ✓ Profiles saved to: %s\n', matfile);
+    fprintf('\n✓ Profiles saved to: %s\n', matfile);
     
     % Plot profiles for visualization
-    fprintf('\n>> Plotting profiles...\n');
+    fprintf('\nPlotting profiles...\n');
     
     figure('Name', 'PV Station 24-Hour Profiles', 'NumberTitle', 'off');
     
@@ -109,6 +102,6 @@ function init_sample_profiles()
 
     % Also save to FIG file for reference
     savefig(fullfile(data_dir, 'data', 'profiles_24h.fig'));
-    fprintf('  ✓ Profile plots saved\n');
+    fprintf('✓ Profile plots saved\n');
     
 end

@@ -11,37 +11,17 @@ cd PV-Station-Digital-Twin
 matlab
 ```
 
-### 2. Automatic Project Startup
-
-Copy `startup_pv_station.m` to MATLAB startup folder:
-
-```bash
-cp startup_pv_station.m ~/Documents/MATLAB/
-```
-
-Or set in MATLAB:
-
-```matlab
-% In MATLAB Preferences:
-% Home > Preferences > General > Startup File
-% Point to: ~/PV-Station-Digital-Twin/startup_pv_station.m
-```
-
-### 3. Manual Project Setup
+### 2. Project Setup
 
 ```matlab
 % Navigate to project directory
 cd /Users/denis/Documents/MATLAB/PV-Station-Digital-Twin
 
-% Complete workflow
-run_simulation_complete
-
-% Or step-by-step
-
 % Step 1: Add paths
 addpath(genpath('./data'));
 addpath(genpath('./docs'));
-addpath(genpath('./matlab_scripts'));
+addpath(genpath('./reports'));
+addpath(genpath('./scripts'));
 addpath(genpath('./simulink_models'));
 
 % Step 2: Run compatibility test
@@ -56,10 +36,16 @@ build_all_models();
 % Step 4.1: Set topology params (not sure if needed)
 X = [ns, np, Pinv, Str, Umv, Atop, Lcab];
 
-% Step 5: Run single 24-hour simulation
+% Step 5: Load all created Simulink models
+load_simulink_models();
+
+% Step 6: Generate 24h profiles
+init_24h_profiles();
+
+% Step 7: Run single 24-hour simulation
 simout = sim('PV_Station_Main', 'accelerator'); % Results automatically logged and analyzed
 
-% Step 6: Analyze and plot results
+% Step 8: Analyze and plot results
 plot_analysis(simout);
 
 % Analyze results
@@ -70,7 +56,16 @@ system_eta = mean(efficiency)             % Average efficiency
 [sim_results, analysis_results] = run_complete_simulation()
 ```
 
-### 4. Running Simulations
+### 5. Parameter Customization
+
+Edit `init_pv_station_main.m` to modify:
+- PV module parameters (Pmax, Voc, Isc, etc.)
+- Inverter settings (rated power, switching frequency)
+- Transformer parameters (power rating, impedance)
+- Grid parameters (voltage, frequency)
+- Cable properties (length, cross-section)
+
+### 6. Running Simulations
 
 Option 1: Single Simulation (24 hours)
 ```matlab
@@ -113,6 +108,17 @@ plot_analysis(results);
 export_results_to_excel(results);
 
 generate_comprehensive_report();
+```
+
+```matlab
+% After simulation Extract results
+P_pv = sim_output.P_pv_log;      % PV power [W]
+P_inv = sim_output.P_inv_log;    % Inverter power [W]
+V_pcc = sim_output.V_pcc_log;    % PCC voltage [%]
+eta = sim_output.eta_log;        % Efficiency [%]
+
+% Calculate daily energy
+E_daily = trapz(time, power) / 3.6e6  % [kWh]
 ```
 
 Option 5: Full Workflow
@@ -163,13 +169,25 @@ results = run_full_workflow('ConfigType', 'optimization');
 | Compatibility warnings | Normal for ARM64, ignore |
 | Out of memory | Reduce StopTime parameter |
 
+### Convergence Issues
+- Check input signal continuity
+- Verify parameter ranges
+- Adjust solver tolerances
+
 ### Issue: Models not found
 
 ```matlab
->> build_all_simulink_models();
+% Clear and restart
+clear all; close all; clc;
+rehash toolboxcache
+build_all_models
 ```
 
 ### Issue: Slow Simulation
+
+- Reduce max step size (improves convergence)
+- Use SimulationMode: 'Accelerator' (faster execution)
+- Pre-compile models
 
 ```matlab
 % Solver Configuration
@@ -200,6 +218,10 @@ top -P -l 1 | head -20
 ```
 
 ### Issue: Out of Memory
+
+- Use shorter simulation times
+- Reduce logging frequency
+- Save results incrementally
 
 ```matlab
 % Reduce simulation time or use smaller step size

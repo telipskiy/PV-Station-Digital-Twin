@@ -28,6 +28,7 @@ function hModel = build_digital_twin_model(varargin)
     save_path = p.Results.SavePath;
     
     % Create new model
+    close_system(model_name, 0);
     hModel = new_system(model_name, 'Model');
     load_system(hModel);
     

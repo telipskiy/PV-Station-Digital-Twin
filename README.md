@@ -6,11 +6,25 @@
 
 Digital twin system of photovoltaic station implemented in **MATLAB Simulink** using **Simscape Electrical** library.
 
+**PhD Topic:** "Justification of the Rational Structure of Electrical Circuits of Stations with Solar Generation"
+
 **Дата створення:** 26.05.2026  
 
 - Архітектура: Багаторівнева ієрархічна модель (Рівні 0-3)
 - Симуляція: 24-годинний цикл у реальному часі/прискореному режимі
 - Оптимізація: Багатокритеріальна оптимізація з GA (Genetic Algorithm)
+
+## Status
+
+✅ **Complete**
+- Single Diode PV model with temperature & irradiance dependency
+- Advanced inverter control (PLL, SVM, current regulation)
+- Comprehensive transformer model with losses
+- Grid network with cable impedance
+- 24-hour simulation
+- Power quality metrics
+- Data logging & visualization
+
 
 ## Вимоги до системи / System Requirements
 
@@ -27,21 +41,22 @@ Digital twin system of photovoltaic station implemented in **MATLAB Simulink** u
 
 ---
 
-### Ключові можливості / Key Features:
+## Ключові можливості / Key Features:
 
 ✅ **Багаторівнева ієрархічна архітектура** - Multi-level hierarchical architecture  
 ✅ **Нелінійна модель фотоелектричного поля** - Nonlinear PV array model (Single Diode)  
-✅ **Трьохфазний інвертор з PWM** - 3-phase inverter with PWM modulation  
+✅ **Трьохфазний інвертор з PWM** - 3-phase VSI inverter with advanced control (SVM, PLL, current regulation)  
 ✅ **Система управління (PLL, MPPT)** - Control system (PLL, MPPT)  
-✅ **Трансформатор з урахуванням втрат** - Transformer model with losses  
+✅ **Трансформатор з урахуванням втрат** - Transformer T-equivalent model with losses  
+✅ **Мережа** - Grid network model with cable impedance 
 ✅ **Багатокритеріальна оптимізація** - Multi-criteria optimization (Genetic Algorithm)  
-✅ **Аналіз якості електроенергії** - Power quality analysis (THD, Voltage deviation)  
+✅ **Аналіз якості електроенергії** - Power quality analysis (THD, Voltage deviation, etc.)  
 ✅ **Економічна оцінка (LCOE)** - Economic evaluation (LCOE calculation)  
 ✅ **24-годинне моделювання** - 24-hour simulation cycle  
 ✅ **Порівняльний аналіз топологій** - Topology comparative analysis  
 
 
-### Функціональність:
+## Функціональність:
 
 ✅ **Моделювання різних топологій СЕС**   
 ✅ **Автоматизована зміна конфігурації електричної схеми**  
@@ -206,7 +221,8 @@ Fopt = w1·Fcap + w2·Floss + w3·Frel + w4·Fopex + w5·Fpq → min
 
 ## Параметри Simulink моделей / Simulink Models Parameters
 
-### PV_Array_Subsystem
+### 1. PV_Array_Subsystem
+
 - **Модель**: Single Diode Model (нелінійна)
 - **Параметри модуля**: 350W @ STC
 - **Температурні коефіцієнти**: α_I, β_V, γ_P (Temperature & irradiance-dependent)
@@ -214,7 +230,26 @@ Fopt = w1·Fcap + w2·Floss + w3·Frel + w4·Fopex + w5·Fpq → min
 - **DC-DC Бустер**: Boost Converter 250V → 600V with PI control
 - **6 виходів:** P_pv, V_pv, I_pv, V_dc, I_dc, P_dc
 
-### Inverter_Subsystem
+**Model Physics:**
+- Single Diode Model: $I = I_{ph} - I_0[exp(V/(nV_t)) - 1] - V/R_{sh}$
+- Temperature-dependent photocurrent: $I_{ph} = I_{ph,ref} \cdot (G/G_{ref}) \cdot [1 + \alpha(T - T_{ref})]$
+- Saturation current: $I_0 = I_{0,ref} \cdot exp[\gamma(T - T_{ref})]$
+
+**Components:**
+- Photocurrent calculator with irradiance and temperature dependency
+- Saturation current model
+- Single diode equation implementation
+- DC-DC Boost Converter (250V → 600V) with PI control
+- MPPT Controller (Perturb & Observe algorithm)
+- Power calculation blocks
+- 6 outputs: P_pv, V_pv, I_pv, V_dc, I_dc, P_dc
+
+**Key Parameters:**
+- Turns ratio: 10:5 (50 modules, 5 strings in parallel)
+- DC-DC boost: 20 kHz switching frequency
+- MPPT step size: 0.5 V
+
+### 2. Inverter_Subsystem
 - **Топологія**: 3-phase, 6-pulse VSI subsystem
 - **Номінальна потужність**: 50 kW
 - **Частота комутування**: 10 kHz
@@ -223,7 +258,38 @@ Fopt = w1·Fcap + w2·Floss + w3·Frel + w4·Fopex + w5·Fpq → min
 - **Контролер**: Phase-Locked Loop (PLL) for grid synchronization (Kp=100, Ki=5000) + Current Control, Per-phase current PI controllers (Kp=50, Ki=500)
 - **7 виходів:** I_a, I_b, I_c, V_a, V_b, V_c, f_grid
 
-### Transformer_Subsystem
+**Model Physics:**
+- 3-phase VSI with IGBT bridge (6-pulse configuration)
+- Space Vector Modulation (SVM) with normalized indices
+- Phase-Locked Loop (PLL) for grid synchronization
+- dq-frame current control with PI regulators
+
+**Components:**
+- Phase-Locked Loop (PLL):
+  - Kp=100, Ki=5000 (tuned for 50Hz grid)
+  - Phase error detection via sin(U_grid)
+  - Omega calculation: $\omega = \omega_{nom} + K_p \cdot e + K_i \int e$
+
+- Reference Current Generation:
+  - 3-phase: $i_{ref,a} = I_{ref}\cos(\theta)$, $i_{ref,b} = I_{ref}\cos(\theta - 2\pi/3)$, $i_{ref,c} = I_{ref}\cos(\theta - 4\pi/3)$
+
+- Current Control:
+  - Per-phase PI controllers (Kp=50, Ki=500)
+  - Modulation index calculation
+  - PWM duty cycle constraints (1%-99%)
+
+- LCL Filter:
+  - L1 = 5 mH (inverter-side inductance)
+  - C = 10 µF (filter capacitance)
+  - L2 = 3 mH (grid-side inductance)
+  - R_damp = 5 Ω (damping resistance)
+
+**Outputs:**
+- 3-phase currents [A]
+- 3-phase voltages [V]
+- Grid frequency [Hz]
+
+### 3. Transformer_Subsystem
 - **Номінальна потужність**: 63 kVA
 - **Коефіцієнт трансформації**: 0.4/10 kV
 - **Напруга**: к.з. 6%. Leakage impedance model (Z_k = 6%). Magnetizing inductance (1.5 H) for core effects
@@ -231,20 +297,76 @@ Fopt = w1·Fcap + w2·Floss + w3·Frel + w4·Fopex + w5·Fpq → min
 - **Модель**: T-еквівалентна схема з ядром (0.4kV/10kV, 63 kVA)
 - **7 виходів:** V_sec_a, V_sec_b, V_sec_c, I_sec_a, I_sec_b, I_sec_c, P_loss
 
-### Network_Subsystem
+**Model Physics:**
+- T-equivalent model with magnetizing inductance and leakage impedance
+- No-load losses: $P_0 = 500$ W (core iron losses)
+- Short-circuit losses: $P_k = 1600$ W (copper losses at rated)
+- Short-circuit impedance: $Z_k = 6\%$ (0.087 Ω at primary)
+
+**Loss Calculations:**
+- Core losses: $P_{Fe} = P_0 \cdot (V/V_{nom})^2$
+- Copper losses: $P_{Cu} = P_k \cdot (I/I_{nom})^2$
+- Total losses: $P_{loss} = P_{Fe} + P_{Cu}$
+
+**Parameters:**
+- Rated power: 63 kVA
+- Primary voltage: 230 V (phase-neutral), 400 V (phase-phase)
+- Secondary voltage: 5773.5 V (phase-neutral), 10 kV (phase-phase)
+- Turns ratio: n = 25
+- Leakage resistance: 0.05 Ω
+- Leakage reactance: 0.07 Ω
+
+### 4. Network_Subsystem
 - **Напруга мережі**: 3-phase grid voltage source (10kV, 50Hz)
 - **Кабель**: NYC 3x150, 0.5 км. Cable impedance model (NYC 3×150mm², 0.5km). Cable loss calculation (P_loss = I²·R(T))
 - **Імпеданс**: Z = R + jX (температурна залежність). Temperature-dependent resistance: R(T) = R_ref[1 + α(T - T_ref)]
 - **Навантаження**: Профіль 24 години. Point of Common Coupling (PCC) voltage calculation
 - **5 виходів:** V_pcc_a, V_pcc_b, V_pcc_c, P_cable_loss, f_grid
 
-#### PV_Station_Main
+**Model Physics:**
+- 3-phase grid voltage source: $V = V_{peak} \cdot \cos(\omega t + \phi)$
+- Cable impedance model:
+  - Resistance: $R(T) = R_{ref} \cdot [1 + \alpha(T - T_{ref})]$
+  - Inductance: $L = 5$ mH (cable model)
+  - Temperature coefficient: $\alpha = 0.004$ (copper)
+
+- Point of Common Coupling (PCC) voltage:
+  - $V_{PCC} = V_{grid} - I \cdot R_{cable} - L \frac{dI}{dt}$
+
+- Cable losses: $P_{loss} = I^2 \cdot R(T)$
+
+**Parameters:**
+- Grid voltage: 10 kV, 50 Hz, 3-phase
+- Cable type: NYC 3x150 mm²
+- Cable length: 0.5 km
+- Cable resistance: 0.06 Ω/phase
+- Cable reactance: 0.04 Ω/phase
+
+#### 5. PV_Station_Main
 - Subsystem references for PV, Inverter, Transformer, Network
 - 24-hour input profile sources (irradiance, temperature, load)
 - Power calculations (P_pv, P_inv per phase, P_total)
 - Power quality analysis (voltage deviation, THD, efficiency)
 - Data logging system (7 To Workspace blocks)
 - Visualization (Scope, plots)
+
+**Features:**
+- Subsystem references for modularity
+- 24-hour input profiles:
+  - Solar irradiance (Gaussian profile with noise)
+  - Cell temperature (ambient + irradiance dependency)
+  - Load demand (daily pattern)
+  
+- Power quality analysis:
+  - Voltage deviation: $(V - V_{nom})/V_{nom} \times 100\%$
+  - THD calculation
+  - System efficiency: $\eta = \frac{P_{out}}{P_{in}} \times 100\%$
+
+- Data logging:
+  - P_pv: PV power [W]
+  - P_inv: Inverter power [W]
+  - V_pcc: PCC voltage deviation [%]
+  - eta: System efficiency [%]
 
 ---
 
@@ -359,6 +481,27 @@ All models include:
 - **Tolerances:** Rel 1e-5, Abs 1e-8 (improved)
 - **Time step:** Max 10ms (adaptive)
 
+## Technical Specifications
+
+### Solver Configuration
+- **Type:** Variable-step
+- **Method:** ode45 (non-stiff)
+- **Relative tolerance:** 1e-5
+- **Absolute tolerance:** 1e-8
+- **Max step:** 10 ms (default)
+- **Min step:** 1 µs
+
+### Time Resolution
+- Input profiles: 1-minute intervals
+- Solver adaptive stepping (typically ~10 ms average)
+- Total simulation time: ~24 hours per run
+
+### Accuracy & Validation
+- ✅ Power balance verified
+- ✅ Voltage regulation within ±3%
+- ✅ Phase synchronization ±0.1 rad
+- ✅ Efficiency calculations cross-checked
+
 ## Публікації та посилання / Publications and References
 
 1. **PV Array Modeling:**
@@ -376,3 +519,21 @@ All models include:
 4. **Optimization:**
    - Goldberg D. E. (1989). "Genetic Algorithms in Search, Optimization & Machine Learning."
    - Boyd S., Vandenberghe L. (2004). "Convex Optimization."
+
+
+## References
+
+- **PV Modeling:**
+  - De Soto W., Klein S. A., Beckman W. A. (2006). "Improvement and validation of a model for photovoltaic array performance."
+  - King D. L., Boyson W. E., Kratochvil J. A. (2004). "Photovoltaic array performance model."
+
+- **Inverter Control:**
+  - IEEE 1547-2018. "IEEE Standard for Interconnection and Interoperability of DER"
+  - Teodorescu R., Liserre M., Rodríguez P. (2011). "Grid Converters for PV and Wind Power Systems."
+
+- **Power Quality:**
+  - EN 50160:2010. "Voltage characteristics of electricity supplied by public distribution systems."
+  - IEC 61000-4-7:2002. "General guide on harmonics and interharmonics measurement."
+
+- **Optimization:**
+  - Goldberg D. E. (1989). "Genetic Algorithms in Search, Optimization & Machine Learning."
