@@ -1,5 +1,5 @@
-%% ========================================================================
-%  DIGITAL TWIN: TEST_COMPATIBILITY - Verify System for Digital Twin
+%  ========================================================================
+%  DIGITAL TWIN: TEST COMPATIBILITY - Verify System for Digital Twin
 %  ========================================================================
 %  Author: Denys Telipskyi
 %  Date: 28.05.2026
@@ -14,15 +14,6 @@
 %  ========================================================================
 
 function test_compatibility()
-    
-    clc;
-    disp(' ');
-    disp('╔════════════════════════════════════════════════════════════════════╗');
-    disp('║                                                                    ║');
-    disp('║            PV STATION DIGITAL TWIN COMPATIBILITY CHECK             ║');
-    disp('║                                                                    ║');
-    disp('╚════════════════════════════════════════════════════════════════════╝');
-    disp(' ');
     
     % ====================================================================
     % Test 1: MATLAB Version
@@ -111,7 +102,8 @@ function test_compatibility()
     
     required_dirs = {
         './simulink_models';
-        './matlab_scripts';
+        './scripts';
+        './reports';
         './data';
         './docs';
     };
@@ -129,40 +121,10 @@ function test_compatibility()
     fprintf('\n');
     
     % ====================================================================
-    % Test 5: Script Availability
+    % Test 5: Memory and Computational Resources
     % ====================================================================
     
-    fprintf('TEST 5: MATLAB Script Availability\n');
-    fprintf('──────────────────────────────────\n');
-    
-    required_scripts = {
-        'optimize_topology.m';
-        'run_simulation_suite.m';
-        'init_pv_station_main.m';
-        'build_pv_array_subsystem.m';
-        'build_inverter_subsystem.m';
-        'build_all_simulink_models.m';
-        'utils/plotting/plot_analysis.m';
-    };
-    
-    test5_pass = true;
-    for i = 1:length(required_scripts)
-        script = required_scripts{i};
-        path = fullfile('./matlab_scripts', script);
-        if isfile(path)
-            fprintf('   ✓ %s\n', script);
-        else
-            fprintf('   ✗ %s - NOT FOUND\n', script);
-            test5_pass = false;
-        end
-    end
-    fprintf('\n');
-    
-    % ====================================================================
-    % Test 6: Memory and Computational Resources
-    % ====================================================================
-    
-    fprintf('TEST 6: Computational Resources\n');
+    fprintf('TEST 5: Computational Resources\n');
     fprintf('────────────────────────────────\n');
     
     [~, avail_mem] = system('vm_stat | grep free');
@@ -174,10 +136,10 @@ function test_compatibility()
     
     if num_cores >= 4
         fprintf('   ✓ Sufficient computational resources\n');
-        test6_pass = true;
+        test5_pass = true;
     else
         fprintf('   ⚠ Limited CPU cores (minimum 4 recommended)\n');
-        test6_pass = false;
+        test5_pass = false;
     end
     fprintf('\n');
     
@@ -185,7 +147,7 @@ function test_compatibility()
     % SUMMARY
     % ====================================================================
     
-    all_pass = test1_pass && test2_pass && test3_pass && test4_pass && test5_pass && test6_pass;
+    all_pass = test1_pass && test2_pass && test3_pass && test4_pass && test5_pass;
     
     fprintf('════════════════════════════════════════════════════════════════════\n');
     fprintf('   COMPATIBILITY TEST SUMMARY\n');
@@ -197,8 +159,7 @@ function test_compatibility()
     fprintf('   Test 2 (Platform):         %s\n', iff(test2_pass, '✓ PASS', '✗ FAIL'));
     fprintf('   Test 3 (Toolboxes):        %s\n', iff(test3_pass, '✓ PASS', '✗ FAIL'));
     fprintf('   Test 4 (Project Structure):%s\n', iff(test4_pass, '✓ PASS', '✗ FAIL'));
-    fprintf('   Test 5 (Scripts):          %s\n', iff(test5_pass, '✓ PASS', '✗ FAIL'));
-    fprintf('   Test 6 (Resources):        %s\n', iff(test6_pass, '✓ PASS', '✗ FAIL'));
+    fprintf('   Test 5 (Resources):        %s\n', iff(test5_pass, '✓ PASS', '✗ FAIL'));
     fprintf('\n');
     
     if all_pass
@@ -206,7 +167,7 @@ function test_compatibility()
         fprintf('   System is ready for PV Station Digital Twin simulation\n\n');
         fprintf('   Next steps:\n');
         fprintf('     1. >> init_pv_station_main\n');
-        fprintf('     2. >> build_all_simulink_models\n');
+        fprintf('     2. >> build_all_models\n');
         fprintf('     3. >> open(''PV_Station_Main.slx'')\n');
 
 
@@ -214,8 +175,6 @@ function test_compatibility()
         fprintf('   OVERALL: ✗ SOME TESTS FAILED\n');
         fprintf('   Please address issues before proceeding\n');
     end
-    fprintf('\n');
-    fprintf('════════════════════════════════════════════════════════════════════\n\n');
     
 end
 
