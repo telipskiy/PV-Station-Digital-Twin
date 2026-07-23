@@ -33,9 +33,6 @@ init_pv_station_main();
 % Step 4: Build models (programmatic)
 build_all_models();
 
-% Step 4.1: Set topology params (not sure if needed)
-X = [ns, np, Pinv, Str, Umv, Atop, Lcab];
-
 % Step 5: Load all created Simulink models
 load_simulink_models();
 
@@ -43,16 +40,29 @@ load_simulink_models();
 init_24h_profiles();
 
 % Step 7: Run single 24-hour simulation
-simout = sim('PV_Station_Main', 'accelerator'); % Results automatically logged and analyzed
+sim('PV_Station_Main');
+
+% Results are automatically saved to workspace:
+% P_pv_log              - PV power [W]
+% P_inv_log             - Inverter power [W]
+% P_loss_trans_log      - Transformer losses [W]
+% f_grid_log            - Grid frequency [Hz]
+% V_pcc_log             - PCC voltage [V]
 
 % Step 8: Analyze and plot results
-plot_analysis(simout);
+create_analysis_plots();
+
+% Export to Excel
+export_results_to_excel();
+
+% Generate comprehensive report
+generate_comprehensive_report();
 
 % Analyze results
 P_pv_daily = trapz(time, P_pv) / 3.6e6    % Daily energy [kWh]
 system_eta = mean(efficiency)             % Average efficiency
 
-% Step 7: Run complete simulation suite
+% OR Step 8: Run complete simulation suite
 [sim_results, analysis_results] = run_complete_simulation()
 ```
 
@@ -232,3 +242,18 @@ sim_config.StopTime = 3600;  % 1 hour instead of 24
 % Close unnecessary figures
 close all;
 ```
+
+### Issue: "Results look wrong" (e.g., V_pcc = 0)
+
+**Cause:** Workspace profiles not loaded  
+**Solution:**
+```matlab
+init_24h_profiles();      % Generate profiles
+init_pv_station_main();   % Load parameters
+sim('PV_Station_Main');   % Run simulation
+```
+
+### Issue: "Inverter currents are constant instead of varying"
+
+**Cause:** MPPT current reference not updating  
+**Solution:** Check that G_profile and T_profile are time-varying (not constants)

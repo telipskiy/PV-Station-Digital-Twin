@@ -12,23 +12,12 @@
 %   3. Inverter_Subsystem - 3-phase VSI with control
 %   4. PV_Array_Subsystem - Solar array with MPPT
 %   5. PV_Station_Main - Top-level integration
-%  
-%  FIXED in this version:
-%   - Inverter output 1-3: CURRENTS (not voltages)
-%   - Inverter output 4-6: VOLTAGES (not currents)
-%   - Transformer input 1-3: VOLTAGES from Inverter (not currents)
-%   - Transformer input 4-6: CURRENTS from Inverter (not voltages)
-%   - All signal types properly matched
-%   - All unconnected ports eliminated
 %  ========================================================================
 
 function build_all_models()
     
-    fprintf('\n');
-    fprintf('========================================================================\n');
-    fprintf('  CREATING ALL SIMULINK MODELS FOR PV STATION DIGITAL TWIN\n');
-    fprintf('  Version: 2026-07-21 (CORRECTED - All signal connections verified)\n');
-    fprintf('========================================================================\n\n');
+    fprintf('Creating Simulink Models for PV Station Digital Twin...\n\n');
+
     
     % Get script directory
     script_dir = fileparts(fileparts(mfilename('fullpath')));
@@ -38,7 +27,6 @@ function build_all_models()
     % Create models directory if needed
     if ~exist(models_dir, 'dir')
         mkdir(models_dir);
-        fprintf('[INFO] Created directory: %s\n\n', models_dir);
     end
     
     % Add paths
@@ -92,35 +80,32 @@ function build_all_models()
         
         elapsed_time = toc;
         
-        fprintf('========================================================================\n');
-        fprintf('  ✓ ALL SIMULINK MODELS CREATED SUCCESSFULLY\n');
-        fprintf('========================================================================\n\n');
-        
+        fprintf('✓ ALL SIMULINK MODELS CREATED SUCCESSFULLY\n\n');
         fprintf('Models created:\n');
-        fprintf('   1. PV_Array_Subsystem.slx              - Single Diode PV model\n');
+        fprintf('   1. PV_Array_Subsystem.slx - Single Diode PV model\n');
         fprintf('      - Single Diode equation with temperature & irradiance effects\n');
         fprintf('      - MPPT Controller (Perturb & Observe)\n');
         fprintf('      - DC-DC Boost Converter (250V → 600V)\n\n');
         
-        fprintf('   2. Inverter_Subsystem.slx              - 3-phase grid-tied VSI\n');
+        fprintf('   2. Inverter_Subsystem.slx - 3-phase grid-tied VSI\n');
         fprintf('      - 6-pulse IGBT bridge with SVM control\n');
         fprintf('      - Phase-Locked Loop (PLL) for grid sync\n');
         fprintf('      - Per-phase current PI controllers\n');
         fprintf('      - LCL filter (L1=5mH, C=10µF, L2=3mH)\n\n');
         
-        fprintf('   3. Transformer_Subsystem.slx           - Step-up transformer\n');
+        fprintf('   3. Transformer_Subsystem.slx - Step-up transformer\n');
         fprintf('      - T-equivalent model with losses\n');
         fprintf('      - 63 kVA, 0.4 kV / 10 kV, Dyn11\n');
         fprintf('      - Core losses (500W) & Copper losses (1600W)\n');
         fprintf('      - Leakage impedance (6%%)\n\n');
         
-        fprintf('   4. Network_Subsystem.slx               - Grid + Cable model\n');
+        fprintf('   4. Network_Subsystem.slx - Grid + Cable model\n');
         fprintf('      - 3-phase grid voltage source (10 kV, 50 Hz)\n');
         fprintf('      - Cable impedance (NYC 3×150mm², 0.5 km)\n');
         fprintf('      - PCC voltage calculation with losses\n');
         fprintf('      - Temperature-dependent resistance\n\n');
         
-        fprintf('   5. PV_Station_Main.slx                 - Main integration model\n');
+        fprintf('   5. PV_Station_Main.slx - Main integration model\n');
         fprintf('      - Complete signal routing: PV → Inv → Trans → Net\n');
         fprintf('      - 24-hour simulation (86400 s)\n');
         fprintf('      - Data logging (7 channels)\n');
@@ -152,9 +137,7 @@ function build_all_models()
         fprintf('   2. Open model: simulink_models/PV_Station_Main.slx\n');
         fprintf('   3. Review all subsystem blocks and signal connections\n');
         fprintf('   4. Run simulation: sim(''PV_Station_Main'')\n');
-        fprintf('   5. Analyze results in sim_output workspace structure\n\n');
-        
-        fprintf('========================================================================\n\n');
+        fprintf('   5. Analyze results in sim_output workspace structure\n');
         
     catch ME
         fprintf('\n✗ ERROR during model building:\n');

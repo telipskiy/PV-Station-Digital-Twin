@@ -13,6 +13,47 @@
 
 ---
 
+## TESTING RECOMMENDATIONS
+
+### Phase 1: Individual Subsystem Validation
+1. **PV Array Test**
+   - Input: G=1000 W/m², T=25°C, V_boost=600V
+   - Expected: P_pv ≈ 8.5 kW, V_pv ≈ 37V, I_pv ≈ 10.2A
+   - Check: Temperature coefficient effects (reduce T by 5°C → P increases ~2%)
+
+2. **Inverter Test**
+   - Input: V_dc=600V, I_dc=15A (8.9kW), U_grid=230V, synchronized phase
+   - Expected: Output currents synchronized with grid, zero phase error
+   - Check: LCL filter response, no oscillations at 10kHz
+
+3. **Transformer Test**
+   - Input: V_prim=400V (3-phase), I_prim=12.9A, T=20°C
+   - Expected: V_sec=10kV, I_sec=0.516A, P_loss≈1.7kW
+   - Check: Loss variation with temperature
+
+4. **Network Test**
+   - Input: I_pcc from transformer, I_load from profile
+   - Expected: V_pcc stays within 400V ±12V (±3%)
+   - Check: Cable losses reasonable (I²R)
+
+### Phase 2: End-to-End 24-Hour Simulation
+1. Load profiles: G_profile, T_profile, Load_profile
+2. Run: `sim('PV_Station_Main')`
+3. Verify:
+   - No algebraic loops
+   - Simulation completes without errors
+   - Results physically reasonable
+   - Daily energy yield ≈ 320-380 kWh (typical for 50kW system)
+   - System efficiency ≈ 85-92%
+
+### Phase 3: Comparative Analysis
+- Compare with IEEE 1547 requirements for grid-tied systems
+- Verify THD calculations
+- Check voltage regulation compliance (EN 50160)
+- Validate power factor performance
+
+---
+
 ## Research Areas
 
 ### 1. **Topology Optimization**

@@ -11,8 +11,6 @@
 %   - Leakage impedance
 %   - Temperature-dependent resistance
 %   - Complete signal connections for simulation
-%   - FIXED: Primary inputs are VOLTAGES (V_a/b/c_prim_in), not currents
-%   - FIXED: Outputs properly transformed per turns ratio
 %   
 % Output: Transformer_Subsystem.slx
 %  ========================================================================

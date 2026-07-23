@@ -10,7 +10,6 @@
 %   - DC-DC Boost Converter (250V → 600V)
 %   - MPPT Controller (Perturb & Observe algorithm)
 %   - Complete signal connections for simulation
-%   - FIXED: All outputs properly connected and typed
 %   
 % Output: PV_Array_Subsystem.slx
 %  ========================================================================
@@ -135,6 +134,7 @@ function hModel = build_pv_array_subsystem(varargin)
     
     % I_ph = I_ph_ref * (G/G_ref) * temp_factor
     I_ph = add_block('simulink/Math Operations/Product', [model_name '/I_ph_calc']);
+    set_param(I_ph, 'Inputs', '3');
     set_param(I_ph, 'Position', [500 80 550 120]);
     add_line(model_name, 'I_ph_ref/1', 'I_ph_calc/1');
     add_line(model_name, 'G_ratio/1', 'I_ph_calc/2');

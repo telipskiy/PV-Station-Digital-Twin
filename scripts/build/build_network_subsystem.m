@@ -12,7 +12,6 @@
 %   - Load model (power flow)
 %   - Network frequency measurement
 %   - Complete signal connections for simulation
-%   - FIXED: Input ports properly defined for currents
 %   
 % Output: Network_Subsystem.slx
 %  ========================================================================

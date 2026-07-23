@@ -12,7 +12,7 @@
 %   - Phase-Locked Loop (PLL) for grid synchronization
 %   - Current controller (PI-based)
 %   - Complete signal connections simulation
-%   - FIXED: Output 1-3 are CURRENTS (I_a/b/c), Output 4-6 are VOLTAGES (V_a/b/c)
+%   - Output 1-3 are CURRENTS (I_a/b/c), Output 4-6 are VOLTAGES (V_a/b/c)
 %   
 % Output: Inverter_Subsystem.slx
 %  ========================================================================
@@ -186,19 +186,19 @@ function hModel = build_inverter_subsystem(varargin)
     % PWM / DUTY CYCLE SATURATION
     % ====================================================================
     
-    sat_a = add_block('simulink/Nonlinear/Saturation', [model_name '/sat_duty_a']);
+    sat_a = add_block('simulink/Discontinuities/Saturation', [model_name '/sat_duty_a']);
     set_param(sat_a, 'LowerLimit', '0.01');
     set_param(sat_a, 'UpperLimit', '0.99');
     set_param(sat_a, 'Position', [800 330 850 350]);
     add_line(model_name, 'PI_ctrl_a/1', 'sat_duty_a/1');
     
-    sat_b = add_block('simulink/Nonlinear/Saturation', [model_name '/sat_duty_b']);
+    sat_b = add_block('simulink/Discontinuities/Saturation', [model_name '/sat_duty_b']);
     set_param(sat_b, 'LowerLimit', '0.01');
     set_param(sat_b, 'UpperLimit', '0.99');
     set_param(sat_b, 'Position', [800 400 850 420]);
     add_line(model_name, 'PI_ctrl_b/1', 'sat_duty_b/1');
     
-    sat_c = add_block('simulink/Nonlinear/Saturation', [model_name '/sat_duty_c']);
+    sat_c = add_block('simulink/Discontinuities/Saturation', [model_name '/sat_duty_c']);
     set_param(sat_c, 'LowerLimit', '0.01');
     set_param(sat_c, 'UpperLimit', '0.99');
     set_param(sat_c, 'Position', [800 470 850 490]);

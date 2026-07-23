@@ -12,7 +12,6 @@
 %   - Power quality analysis blocks (THD, voltage deviation, etc.)
 %   - Data logging and visualization
 %   - Complete signal connections for simulation
-%   - FIXED: All subsystem connections verified
 %   
 % Output: PV_Station_Main.slx
 %  ========================================================================
@@ -38,26 +37,29 @@ function hModel = build_digital_twin_model(varargin)
     set_param(hModel, 'SolverName', 'ode45');
     set_param(hModel, 'RelTol', '1e-5');
     set_param(hModel, 'AbsTol', '1e-8');
-    set_param(hModel, 'MaxStep', '0.01');  % 10 ms steps
+    set_param(hModel, 'MaxStep', '0.01');  % 10 ms steps for reasonable speed
     set_param(hModel, 'MinStep', '1e-6');
     set_param(hModel, 'StopTime', '86400');  % 24-hour simulation
     set_param(hModel, 'SimulationMode', 'Accelerator');
     set_param(hModel, 'FastRestart', 'on');
     
     % ====================================================================
-    % INPUT PROFILES (24-Hour)
+    % INPUT SIGNALS - 24-Hour Profiles
     % ====================================================================
     
+    % Solar irradiance profile
     G_profile = add_block('simulink/Sources/From Workspace', [model_name '/Solar_Profile']);
     set_param(G_profile, 'VariableName', 'G_profile');
-    set_param(G_profile, 'SampleTime', '60');
+    set_param(G_profile, 'SampleTime', '60');  % 1-minute resolution
     set_param(G_profile, 'Position', [30 50 100 70]);
-    
+
+    % Temperature profile
     T_profile = add_block('simulink/Sources/From Workspace', [model_name '/Temp_Profile']);
     set_param(T_profile, 'VariableName', 'T_profile');
     set_param(T_profile, 'SampleTime', '60');
     set_param(T_profile, 'Position', [30 120 100 140]);
-    
+
+    % Load demand profile
     Load_profile = add_block('simulink/Sources/From Workspace', [model_name '/Load_Profile']);
     set_param(Load_profile, 'VariableName', 'Load_profile');
     set_param(Load_profile, 'SampleTime', '60');
@@ -68,23 +70,23 @@ function hModel = build_digital_twin_model(varargin)
     % ====================================================================
     
     % [1] PV Array (outputs: P_pv, V_pv, I_pv, V_dc, I_dc, I_ref)
-    PV_sub = add_block('simulink/References/Subsystem Reference', [model_name '/PV_Array']);
-    set_param(PV_sub, 'ReferencedSubsystem', 'PV_Array_Subsystem');
+    PV_sub = add_block('simulink/Ports & Subsystems/Model', [model_name '/PV_Array']);
+    set_param(PV_sub, 'ModelName', 'PV_Array_Subsystem');
     set_param(PV_sub, 'Position', [200 50 280 150]);
     
     % [2] Inverter (outputs: I_a/b/c, V_a/b/c, f_grid)
-    INV_sub = add_block('simulink/References/Subsystem Reference', [model_name '/Inverter']);
-    set_param(INV_sub, 'ReferencedSubsystem', 'Inverter_Subsystem');
+    INV_sub = add_block('simulink/Ports & Subsystems/Model', [model_name '/Inverter']);
+    set_param(INV_sub, 'ModelName', 'Inverter_Subsystem');
     set_param(INV_sub, 'Position', [350 50 430 200]);
     
     % [3] Transformer (outputs: V_sec, I_sec, P_loss)
-    TRANS_sub = add_block('simulink/References/Subsystem Reference', [model_name '/Transformer']);
-    set_param(TRANS_sub, 'ReferencedSubsystem', 'Transformer_Subsystem');
+    TRANS_sub = add_block('simulink/Ports & Subsystems/Model', [model_name '/Transformer']);
+    set_param(TRANS_sub, 'ModelName', 'Transformer_Subsystem');
     set_param(TRANS_sub, 'Position', [500 50 580 200]);
     
     % [4] Network (outputs: V_pcc, P_loss, f_grid)
-    NET_sub = add_block('simulink/References/Subsystem Reference', [model_name '/Network']);
-    set_param(NET_sub, 'ReferencedSubsystem', 'Network_Subsystem');
+    NET_sub = add_block('simulink/Ports & Subsystems/Model', [model_name '/Network']);
+    set_param(NET_sub, 'ModelName', 'Network_Subsystem');
     set_param(NET_sub, 'Position', [650 50 730 200]);
     
     % ====================================================================
@@ -131,8 +133,9 @@ function hModel = build_digital_twin_model(varargin)
     add_line(model_name, 'Transformer/5', 'Network/2');
     add_line(model_name, 'Transformer/6', 'Network/3');
     
+    % Load profile converter to currents (simplified: I = P / (sqrt(3) * V * cos(phi)))
     I_load_scale = add_block('simulink/Math Operations/Gain', [model_name '/I_load_scale']);
-    set_param(I_load_scale, 'Gain', '0.002');
+    set_param(I_load_scale, 'Gain', '1/(230*sqrt(3)*0.95)');  % Convert W to A
     set_param(I_load_scale, 'Position', [100 190 140 210]);
     add_line(model_name, 'Load_Profile/1', 'I_load_scale/1');
     add_line(model_name, 'I_load_scale/1', 'Network/4');
@@ -144,23 +147,23 @@ function hModel = build_digital_twin_model(varargin)
     % ====================================================================
     
     log_P_pv = add_block('simulink/Sinks/To Workspace', [model_name '/log_P_pv']);
-    set_param(log_P_pv, 'VariableName', 'sim_output.P_pv_log');
+    set_param(log_P_pv, 'VariableName', 'P_pv_log');
     set_param(log_P_pv, 'SaveFormat', 'Array');
     set_param(log_P_pv, 'Position', [800 50 850 70]);
     
     log_P_inv = add_block('simulink/Sinks/To Workspace', [model_name '/log_P_inv']);
-    set_param(log_P_inv, 'VariableName', 'sim_output.P_inv_log');
+    set_param(log_P_inv, 'VariableName', 'P_inv_log');
     set_param(log_P_inv, 'SaveFormat', 'Array');
     set_param(log_P_inv, 'Position', [800 120 850 140]);
     
     log_P_loss_trans = add_block('simulink/Sinks/To Workspace', [model_name '/log_P_loss_trans']);
-    set_param(log_P_loss_trans, 'VariableName', 'sim_output.P_loss_trans_log');
+    set_param(log_P_loss_trans, 'VariableName', 'P_loss_trans_log');
     set_param(log_P_loss_trans, 'SaveFormat', 'Array');
     set_param(log_P_loss_trans, 'Position', [800 190 850 210]);
     add_line(model_name, 'Transformer/7', 'log_P_loss_trans/1');
     
     log_f_grid = add_block('simulink/Sinks/To Workspace', [model_name '/log_f_grid']);
-    set_param(log_f_grid, 'VariableName', 'sim_output.f_grid_log');
+    set_param(log_f_grid, 'VariableName', 'f_grid_log');
     set_param(log_f_grid, 'SaveFormat', 'Array');
     set_param(log_f_grid, 'Position', [800 260 850 280]);
     add_line(model_name, 'Inverter/7', 'log_f_grid/1');
