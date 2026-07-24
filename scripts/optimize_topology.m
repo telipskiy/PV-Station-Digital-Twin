@@ -1,14 +1,64 @@
-%% ========================================================================
-%  OPTIMIZE TOPOLOGY - MULTI-CRITERIA OPTIMIZATION ENGINE
 %  ========================================================================
-%  PhD Research: Rational Structure Design of PV Stations
+%  DIGITAL TWIN: PV STATION - MULTI-CRITERIA OPTIMIZATION ENGINE
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 01.06.2026
+%  
 %  Purpose: Genetic Algorithm-based multi-criteria optimization
-%  Date: 2025
+%
+%  DESCRIPTION:
+%    This function performs multi-objective optimization of PV station
+%    topology using a Genetic Algorithm (GA). It minimizes total lifecycle
+%    cost by optimizing design decisions subject to physical and operational
+%    constraints. Uses weighted combination of capital cost, energy losses,
+%    reliability, operating expenses, and power quality.
+%
+%  INPUTS:
+%    None (loads parameters from 'pv_station_parameters.mat')
+%
+%  OUTPUTS:
+%    X_opt - Optimal design variables:
+%      * X_opt(1): n_s (series modules per string) [5-20]
+%      * X_opt(2): n_p (parallel strings) [2-20]
+%      * X_opt(3): n_inv (number of inverters) [1-3]
+%      * X_opt(4): P_inv (inverter power) [25-100 kW]
+%      * X_opt(5): S_tr (transformer power) [25-100 kVA]
+%      * X_opt(6): U_mv (medium voltage level) [0.4-20 kV]
+%      * X_opt(7): A_top (topology type) [1-3]
+%      * X_opt(8): L_cab (cable length) [0.1-2 km]
+%
+%    Fopt_min - Minimum objective function value [USD] (lifecycle cost)
+%    population_history - Convergence data for visualization
+%
+%  OPTIMIZATION METRICS:
+%    - Capital cost (CapEx): Equipment and installation [USD]
+%    - Energy losses: Annual energy dissipation cost [USD/year]
+%    - Reliability: Cost of potential outages (EENS model) [USD]
+%    - Operating expenses (OpEx): Maintenance and insurance [USD/year]
+%    - Power quality: THD and voltage deviation penalties [USD]
+%
+%  CONSTRAINTS:
+%    1. PV power ≤ total inverter capacity (power balance)
+%    2. Minimum 2 modules per string (technical requirement)
+%    3. Transformer capacity ≥ PV power (sizing requirement)
+%
+%  USAGE:
+%    >> [X_opt, Fopt, history] = optimize_topology();
+%    >> fprintf('Optimal n_s=%d, n_p=%d, P_inv=%.1f kW\n', ...
+%           X_opt(1), X_opt(2), X_opt(4)/1000);
+%
+%  FILES CREATED:
+%    - optimization_results.mat (design variables and cost breakdown)
+%    - pv_optimization_full_results.mat (complete results and history)
+%    - optimization_results.fig / .png (convergence plots)
+%
+%  COMPUTATION TIME: 30-60 minutes on standard workstation
 %  ========================================================================
 
 function [X_opt, Fopt_min, population_history] = optimize_topology()
 
-    % Load initialization parameters
+    % Load initialization parameters - Required for all component specs
+    % and economic data used in the objective function
     if ~exist('pv_station_parameters.mat', 'file')
         init_pv_station_main;
     end
@@ -22,13 +72,19 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     
     % ====================================================================
     % 1. SETUP OPTIMIZATION PARAMETERS
+    % Purpose: Define search space and problem dimensionality for GA.
+    % Each decision variable has physical bounds representing feasible designs.
+    
+    % Decision variables (Design Space):
+    % X = [n_s, n_p, n_inv, P_inv, S_tr, U_mv, A_top, L_cab]
+    % These represent all major design choices for the PV system
     % ====================================================================
     
     % Decision variables (Design Space):
     % X = [n_s, n_p, n_inv, P_inv, S_tr, U_mv, A_top, L_cab]
     
-    lb = X_opt.lower_bounds;  % Lower bounds
-    ub = X_opt.upper_bounds;  % Upper bounds
+    lb = X_opt.lower_bounds;  % Lower bounds for each variable
+    ub = X_opt.upper_bounds;  % Upper bounds for each variable
     n_var = length(lb);
     
     disp(['Number of Decision Variables: ', num2str(n_var)]);
@@ -40,24 +96,29 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     
     % ====================================================================
     % 2. GENETIC ALGORITHM OPTIONS
+    % Purpose: Configure GA parameters for balance between solution quality
+    % and computational efficiency. Key parameters explained:
+    % - PopulationSize: Larger = more exploration but slower
+    % - MaxGenerations: More generations = better convergence but slower
+    % - EliteCount: Best solutions automatically carry to next generation
     % ====================================================================
     
-    options = optimoptions('ga', ...
-        'PopulationSize', 40, ...
-        'MaxGenerations', 100, ...
-        'EliteCount', 4, ...
-        'FunctionTolerance', 1e-4, ...
-        'ConstraintTolerance', 1e-3, ...
-        'Display', 'iter', ...
-        'PlotFcn', {@gaplotbestf, @gaplotexpectation}, ...
-        'InitialPopulation', [], ...
+     options = optimoptions('ga', ...
+         'PopulationSize', 40, ...          % Population size for each generation
+        'MaxGenerations', 100, ...         % Stop after N generations or convergence
+        'EliteCount', 4, ...               % Preserve best 4 solutions
+        'FunctionTolerance', 1e-4, ...     % Convergence tolerance
+        'ConstraintTolerance', 1e-3, ...   % Constraint violation tolerance
+        'Display', 'iter', ...             % Show progress in command window
+        'PlotFcn', {@gaplotbestf, @gaplotexpectation}, ...  % Live convergence plots
+        'InitialPopulation', [], ...       % Use custom initialization
         'CreationFcn', @create_initial_population, ...
         'MutationFcn', @mutate_variables, ...
         'CrossoverFcn', @crossover_real, ...
         'SelectionFcn', @selectiontournament, ...
-        'UseVectorized', true, ...
-        'UseParallel', false);
-    
+        'UseVectorized', true, ...         % Evaluate population in batch
+        'UseParallel', false);             % Set true to use parallel computing
+
     disp('Genetic Algorithm Settings:');
     disp(['  Population Size: ', num2str(options.PopulationSize)]);
     disp(['  Max Generations: ', num2str(options.MaxGenerations)]);
@@ -66,9 +127,11 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     
     % ====================================================================
     % 3. DEFINE OBJECTIVE FUNCTION & CONSTRAINTS
+    % Purpose: Create function handles that GA will use to evaluate
+    % candidate solutions. Store global data for fitness function.
     % ====================================================================
     
-    % Store global data for fitness function
+    % Store all parameters in structure for efficient passing to fitness function
     global_data.PV = PV;
     global_data.DCDC = DCDC;
     global_data.INV = INV;
@@ -82,14 +145,16 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     global_data.SIM = SIM;
     global_data.t_sim = t_sim;
     
-    % Objective function (minimization)
+    % Objective function (minimization): Calculate lifecycle cost for each design
     objective = @(X) evaluate_topology(X, global_data);
     
-    % Constraints function
+    % Constraints function: Ensure design feasibility (returns violation amounts)
     constraints = @(X) apply_constraints(X, global_data);
     
     % ====================================================================
     % 4. LAUNCH GENETIC ALGORITHM
+    % Purpose: Execute GA to search for optimal solution. This is the
+    % computationally intensive step (typically 30-60 minutes).
     % ====================================================================
     
     tic;
@@ -98,20 +163,22 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     disp(' ');
     
     [X_opt, Fopt_min, exitflag, output, population, scores] = ga(...
-        objective, ...
-        n_var, ...
-        [], [], [], [], ...  % Linear constraints (none)
-        lb, ub, ...          % Bounds
-        constraints, ...     % Nonlinear constraints
+        objective, ...           % Function to minimize
+        n_var, ...               % Number of variables
+        [], [], [], [], ...      % Linear constraints (A, b, Aeq, beq) - none
+        lb, ub, ...              % Variable bounds
+        constraints, ...         % Nonlinear constraints (inequality and equality)
         options);
     
     opt_time = toc;
     
     % ====================================================================
     % 5. SAVE OPTIMIZATION RESULTS
+    % Purpose: Store optimization results for post-processing and archival.
+    % Convert normalized variables back to physical values.
     % ====================================================================
     
-    % Convert decision variables to actual values
+    % Convert decision variables from normalized [0,1] space to to actual values [lb, ub]
     X_opt_physical = decode_solution(X_opt, lb, ub);
     
     results.X_optimal = X_opt_physical;
@@ -126,6 +193,7 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     
     % ====================================================================
     % 6. DISPLAY RESULTS
+    % Purpose: Present optimal solution in human-readable format.
     % ====================================================================
     
     disp(' ');
@@ -167,7 +235,7 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
         Fpq, WEIGHT.w_pq*100);
     disp(' ');
     
-    % Calculate LCOE
+    % Calculate Levelized Cost of Energy (LCOE) - Standard PV industry metric
     annual_energy = sum(SOLAR.G_profile) / 1000 * PV.Pfield_rated / 1e3; % Approximate
     LCOE = (Fcap + Fopex * ECONOMICS.study_period) / (annual_energy * ECONOMICS.study_period);
     fprintf('Levelized Cost of Energy (LCOE): %.3f $/kWh\n', LCOE);
@@ -175,11 +243,12 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     
     % ====================================================================
     % 7. SAVE OPTIMIZATION HISTORY
+    % Purpose: Store convergence history for visualization and analysis.
     % ====================================================================
     
     population_history.generations = 1:output.generations;
-    population_history.best_fitness = output.bestfval;
-    population_history.mean_fitness = output.meanfval;
+    population_history.best_fitness = output.bestfval;   % Best cost per generation
+    population_history.mean_fitness = output.meanfval;   % Average cost per generation
     
     % Save all data to file
     save('pv_optimization_full_results.mat', 'results', 'population_history', ...
@@ -190,6 +259,7 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
     
     % ====================================================================
     % VISUALIZATION
+    % Purpose: Create publication-quality plots of optimization results.
     % ====================================================================
     
     create_optimization_plots(population_history, X_opt_physical, ...
@@ -197,36 +267,51 @@ function [X_opt, Fopt_min, population_history] = optimize_topology()
 
 end
 
-%% ========================================================================
-% NESTED FUNCTION: EVALUATE TOPOLOGY (FITNESS FUNCTION)
+% ========================================================================
+% EVALUATE TOPOLOGY (FITNESS FUNCTION)
+% Purpose: Calculate total lifecycle cost for given design. This is the
+% objective function that GA minimizes. Called thousands of times during
+% optimization, so computational efficiency is important.
+%
+% INPUTS:
+%   X - Normalized design variables [0,1]
+%   global_data - Structure containing all parameters
+%
+% OUTPUTS:
+%   Fopt - Total lifecycle cost [USD]
 % ========================================================================
 
 function Fopt = evaluate_topology(X, global_data)
     
-    % Decode solution
+    % Decode solution from normalized [0,1] space to physical space
     lb = [5, 2, 1, 25e3, 25e3, 0.4, 1, 0.1];
     ub = [20, 20, 3, 100e3, 100e3, 20, 3, 2];
     X_physical = decode_solution(X, lb, ub);
     
-    % Extract components
+    % Extract individual cost components
     [Fcap, Floss, Frel, Fopex, Fpq] = evaluate_components(X_physical, global_data);
     
     % Combined objective
+    % Weighted sum of objectives (multi-criteria optimization)
+    % Each criterion is scaled by importance weight and combined
     Fopt = global_data.WEIGHT.w_cap * Fcap + ...
            global_data.WEIGHT.w_loss * Floss + ...
            global_data.WEIGHT.w_rel * Frel + ...
            global_data.WEIGHT.w_opex * Fopex + ...
            global_data.WEIGHT.w_pq * Fpq;
     
-    % Add penalty for infeasible solutions
+    % Add penalty term for constraint violations to enforce feasibility
+    % Infeasible solutions get large penalty, driving GA away from them
     [c, ceq] = apply_constraints(X, global_data);
     penalty = 1e6 * sum(max(0, c).^2 + ceq.^2);
     Fopt = Fopt + penalty;
     
 end
 
-%% ========================================================================
-% NESTED FUNCTION: EVALUATE COMPONENTS (DETAILED METRICS)
+% ========================================================================
+% EVALUATE COMPONENTS (DETAILED METRICS)
+% Purpose: Calculate all five objective function components from design
+% variables. Models economic, technical, and reliability aspects.
 % ========================================================================
 
 function [Fcap, Floss, Frel, Fopex, Fpq] = evaluate_components(X_phys, global_data)
@@ -244,46 +329,48 @@ function [Fcap, Floss, Frel, Fopex, Fpq] = evaluate_components(X_phys, global_da
     A_top = X_phys(7);
     L_cab = X_phys(8);
     
-    % 1. CAPITAL COSTS
-    P_pv = PV.Pmax_stc * n_s * n_p / 1000;  % [kW]
-    C_pv_total = P_pv * ECONOMICS.C_PV;     % [USD]
-    C_inv_total = n_inv * (P_inv / 1000) * ECONOMICS.C_INV;
-    C_tr_total = (S_tr / 1000) * ECONOMICS.C_TR;
-    C_cable_total = L_cab * ECONOMICS.C_CABLE;
+    % 1. CAPITAL COSTS - Initial equipment and installation investment
+    P_pv = PV.Pmax_stc * n_s * n_p / 1000;  % Total PV power [kW]
+    C_pv_total = P_pv * ECONOMICS.C_PV;     % PV module cost
+    C_inv_total = n_inv * (P_inv / 1000) * ECONOMICS.C_INV;  % Inverter cost
+    C_tr_total = (S_tr / 1000) * ECONOMICS.C_TR;  % Transformer cost
+    C_cable_total = L_cab * ECONOMICS.C_CABLE;    % Cable cost
     C_install = (C_pv_total + C_inv_total + C_tr_total + C_cable_total) * ECONOMICS.C_INSTALL;
     
     Fcap = C_pv_total + C_inv_total + C_tr_total + C_cable_total + C_install;
     
-    % 2. ENERGY LOSSES (Annual)
-    % Approximate: System losses ~ 20% at STC
+    % 2. ENERGY LOSSES - Annual energy dissipation cost
+    % Approximate: System losses ~20% based on typical values
     annual_generation = P_pv * 1000 * 365 * 4;  % Average 4 peak hours/day [Wh]
-    P_loss_avg = annual_generation * 0.15 / (365*24);  % [W]
-    annual_loss_kwh = P_loss_avg * 365 * 24 / 1000;  % [kWh]
-    cost_per_kwh = 0.1;  % [USD/kWh]
+    P_loss_avg = annual_generation * 0.15 / (365*24);  % Average loss power [W]
+    annual_loss_kwh = P_loss_avg * 365 * 24 / 1000;  % Annual losses [kWh]
+    cost_per_kwh = 0.1;  % Cost of wasted energy [USD/kWh]
     Floss = annual_loss_kwh * cost_per_kwh * ECONOMICS.study_period;
-    
-    % 3. RELIABILITY (EENS - Energy Not Supplied)
-    % Simplified: Failure rate proportional to complexity
-    failure_rate = 0.001 * (n_inv + n_s/10);  % [1/year]
+
+    % 3. RELIABILITY - Cost of potential energy not supplied (EENS)
+    % Simplified model: Failure rate increases with system complexity
+    failure_rate = 0.001 * (n_inv + n_s/10);  % Annual failure probability
     availability = exp(-failure_rate * ECONOMICS.study_period);
-    EENS = (1 - availability) * annual_generation / 1000 * 0.5;  % [kWh]
-    Frel = EENS * 1;  % [USD equivalent]
+    EENS = (1 - availability) * annual_generation / 1000 * 0.5;  % Energy not supplied [kWh]
+    Frel = EENS * 1;  % Cost equivalent [USD]
     
-    % 4. OPEX (Operating Expenses)
-    annual_opex = Fcap * ECONOMICS.annual_opex_rate;
+    % 4. OPEX (Operating Expenses) - Annual maintenance, insurance, etc.
+    annual_opex = Fcap * ECONOMICS.annual_opex_rate;  % Assume 1% of capital
     Fopex = annual_opex * ECONOMICS.study_period;
     
-    % 5. POWER QUALITY
-    % Simplified: THD ~ 3% (good inverter), ΔU ~ 2%
-    THD = 3;
-    DU = 2;
-    power_quality_penalty = (THD/5 + DU/5) * 10000;  % [USD]
+    % 5. POWER QUALITY - Penalty for harmonic distortion and voltage deviation
+    % Simplified: Assumes good inverter (~3% THD), standard grid voltage deviation
+    THD = 3;  % Total Harmonic Distortion [%]
+    DU = 2;   % Voltage deviation [%]
+    power_quality_penalty = (THD/5 + DU/5) * 10000;  % Normalized penalty
     Fpq = power_quality_penalty;
     
 end
 
-%% ========================================================================
-% NESTED FUNCTION: APPLY CONSTRAINTS
+% ========================================================================
+% APPLY CONSTRAINTS
+% Purpose: Enforce physical and operational constraints. GA uses constraint
+% violations as penalty to guide search toward feasible region.
 % ========================================================================
 
 function [c, ceq] = apply_constraints(X, global_data)
@@ -299,11 +386,13 @@ function [c, ceq] = apply_constraints(X, global_data)
     P_inv = X_physical(4);
     S_tr = X_physical(5);
     
-    % PV power must be <= Sum of inverter powers
+    % Constraint 1: Power balance (critical for stability)
+    % PV power must be <= total inverter capacity (each inverter rated at P_inv)
     P_pv = PV.Pmax_stc * n_s * n_p;
-    c(1) = P_pv - n_inv * P_inv;  % Should be <= 0
+    c(1) = P_pv - n_inv * P_inv;  % Should be <= 0 (violated if > 0)
     
-    % Minimum 2 modules per string
+    % Constraint 2: Minimum modules per string (technical requirement)
+    % At least 2 modules needed to avoid overvoltage conditions
     c(2) = 2 - n_s;  % n_s >= 2
     if c(2) > 0
         c(2) = -c(2);
@@ -311,16 +400,19 @@ function [c, ceq] = apply_constraints(X, global_data)
         c(2) = 0;
     end
     
-    % Transformer power >= PV power (normalized)
+    % Constraint 3: Transformer sizing (must accommodate PV power)
+    % Transformer power >= PV power (normalized comparison)
     c(3) = P_pv / 1000 - S_tr / 1000;
     
-    % Equality constraints
+    % Equality constraints (none for this problem)
     ceq = [];
     
 end
 
-%% ========================================================================
-% HELPER FUNCTION: DECODE SOLUTION
+% ========================================================================
+% DECODE SOLUTION
+% Purpose: Convert normalized [0,1] variables to physical [lb, ub] values
+% Linear transformation: x_phys = lb + x_norm * (ub - lb)
 % ========================================================================
 
 function X_physical = decode_solution(X_normalized, lb, ub)
@@ -328,8 +420,9 @@ function X_physical = decode_solution(X_normalized, lb, ub)
     X_physical = lb + X_normalized .* (ub - lb);
 end
 
-%% ========================================================================
-% HELPER FUNCTION: CREATE INITIAL POPULATION
+% ========================================================================
+% CREATE INITIAL POPULATION
+% Purpose: Initialize GA population with random feasible solutions
 % ========================================================================
 
 function pop = create_initial_population(nvars, options)
@@ -338,8 +431,9 @@ function pop = create_initial_population(nvars, options)
     pop = rand(pop_size, nvars);  % Random [0,1]
 end
 
-%% ========================================================================
-% HELPER FUNCTION: MUTATION
+% ========================================================================
+% MUTATION
+% Purpose: Small random perturbations to maintain population diversity
 % ========================================================================
 
 function xnew = mutate_variables(xold, options)
@@ -349,8 +443,9 @@ function xnew = mutate_variables(xold, options)
     xnew = max(0, min(1, xnew));  % Clip to [0,1]
 end
 
-%% ========================================================================
-% HELPER FUNCTION: CROSSOVER (REAL-VALUED)
+% ========================================================================
+% CROSSOVER (REAL-VALUED)
+% Purpose: Blend crossover (BLX) - creates offspring between parents
 % ========================================================================
 
 function xpop = crossover_real(parents, options, nvars, ~, xpop)
@@ -376,7 +471,8 @@ function xpop = crossover_real(parents, options, nvars, ~, xpop)
 end
 
 %% ========================================================================
-% HELPER FUNCTION: CREATE OPTIMIZATION PLOTS
+% CREATE OPTIMIZATION PLOTS
+% Purpose: Generate publication-quality visualization of results
 % ========================================================================
 
 function create_optimization_plots(pop_hist, X_opt, Fcap, Floss, Frel, Fopex, Fpq)
@@ -425,7 +521,7 @@ function create_optimization_plots(pop_hist, X_opt, Fcap, Floss, Frel, Fopex, Fp
     grid on;
     
     subplot(2,3,6);
-    text(0.1, 0.7, ['Optimization Complete'], 'FontSize', 14, 'FontWeight', 'bold');
+    text(0.1, 0.7, 'Optimization Complete', 'FontSize', 14, 'FontWeight', 'bold');
     text(0.1, 0.5, ['Minimum Cost: $' num2str(sum(components), '%.2f')], 'FontSize', 12);
     text(0.1, 0.3, ['LCOE: $' num2str(sum(components)/1000, '%.3f') '/kWh'], 'FontSize', 12);
     axis off;
