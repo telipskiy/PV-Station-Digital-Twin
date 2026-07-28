@@ -1,60 +1,128 @@
-# Setup Guide for PV Station Digital Twin
+# Початок роботи
 
-### 1. Installation
+## Статус моделі
+
+Основний відтворюваний сценарій — квазіусталений часовий розрахунок структури СЕС. 
+Він придатний для порівняння кількості модулів, стрінгів, інверторів і кабельних трас.
+Він не є результатом моделювання гармонік, комутаційних перехідних процесів або відповідності мережевому коду. 
+Деталі наведено у [межах застосовності](MODEL_SCOPE_AND_VALIDATION.md).
+
+### 1. Підготовка
 
 ```bash
 # Clone repository
 git clone https://github.com/telipskiy/PV-Station-Digital-Twin.git
 cd PV-Station-Digital-Twin
-
-# Open in MATLAB
-matlab
 ```
 
-### 2. Project Setup
+### 2. Запуск проєкту
 
 ```matlab
 % Navigate to project directory
 cd /Users/denis/Documents/MATLAB/PV-Station-Digital-Twin
 
 % Step 1: Add paths
-addpath(genpath('./data'));
-addpath(genpath('./docs'));
-addpath(genpath('./reports'));
-addpath(genpath('./scripts'));
-addpath(genpath('./simulink_models'));
+addpath(genpath('./'));
 
 % Step 2: Run compatibility test
 test_compatibility();
 
-% Step 3: Initialize parameters
-init_pv_station_main();
+
+% Step 3: Initialize parameters & test topology
+test_topology_core();
 
 % Step 4: Build models (programmatic)
 build_all_models();
-
-% Step 4.1: Set topology params (not sure if needed)
-X = [ns, np, Pinv, Str, Umv, Atop, Lcab];
 
 % Step 5: Load all created Simulink models
 load_simulink_models();
 
 % Step 6: Generate 24h profiles
 init_24h_profiles();
+```
 
+Згенеровані Simulink-моделі компілюються.
+Їхній повний динамічний та гармонічний аналіз ще не верифіковано;
+не застосовувати його результати як доказ THD, поведінки PLL або відповідності IEEE/IEC.
+
+### Not verified for now
+
+```matlab
 % Step 7: Run single 24-hour simulation
-simout = sim('PV_Station_Main', 'accelerator'); % Results automatically logged and analyzed
+sim('PV_Station_Main');
+
+% Results are automatically saved to workspace:
+% P_pv_log              - PV power [W]
+% P_inv_log             - Inverter power [W]
+% P_loss_trans_log      - Transformer losses [W]
+% f_grid_log            - Grid frequency [Hz]
+% V_pcc_log             - PCC voltage [V]
 
 % Step 8: Analyze and plot results
-plot_analysis(simout);
+create_analysis_plots();
+
+% Export to Excel
+export_results_to_excel();
+
+% Generate comprehensive report
+generate_comprehensive_report();
 
 % Analyze results
 P_pv_daily = trapz(time, P_pv) / 3.6e6    % Daily energy [kWh]
 system_eta = mean(efficiency)             % Average efficiency
 
-% Step 7: Run complete simulation suite
+% OR Step 8: Run complete simulation suite
 [sim_results, analysis_results] = run_complete_simulation()
 ```
+
+### 3. Один розрахунок топології
+
+```matlab
+[result, analysis] = run_complete_simulation( ...
+    'Topology', 'multi-string', ...
+    'ModulesPerString', 10, ...
+    'NumberOfStrings', 6, ...
+    'NumberOfInverters', 3, ...
+    'InverterRatedPower', 10e3, ...
+    'DcCableLength', 20, ...
+    'AcCableLength', 0.5);
+
+analysis.E_pcc_day_kWh
+analysis.E_loss_day_kWh
+analysis.average_efficiency_percent
+analysis.constraints
+```
+
+Параметр `DcCableLength` є скаляром або вектором з одним значенням для кожного стрінгу. 
+Це дозволяє моделювати нерівні колекторні траси.
+
+### 4. Параметрична серія
+
+```matlab
+results = run_simulation_suite( ...
+    'ModulesPerString', [8 10 12], ...
+    'NumberOfStrings', [2 5 10], ...
+    'Topology', {'string','multi-string','central'}, ...
+    'InverterRatedPower', [10e3 25e3 50e3], ...
+    'AcCableLengthKm', [0.1 0.5 1.0]);
+```
+
+У результати включено `Feasible`, максимальні струми та напругу стрінгу.
+Недопустимі варіанти не слід використовувати для порівняльних висновків.
+
+### 5. Вибір найкращої альтернативи
+
+```matlab
+[X_opt, lifecycleCost, study] = optimize_topology( ...
+    'ModulesPerString', [8 10 12], ...
+    'NumberOfStrings', [2 5 10], ...
+    'Topology', {'string','multi-string','central'});
+
+study.optimum
+```
+
+Критерій оптимізації — дисконтовані життєві витрати за введених економічних припущень.
+Перед публікацією замінити сценарні ціни і профілі на дані із документованих джерелами.
 
 ### 5. Parameter Customization
 
@@ -127,7 +195,7 @@ Option 5: Full Workflow
 results = run_full_workflow('ConfigType', 'optimization');
 ```
 
-### 5. Available Operations
+### 6. Available Operations
 
 | Operation | Command | Duration |
 |-----------|---------|----------|
@@ -136,7 +204,7 @@ results = run_full_workflow('ConfigType', 'optimization');
 | Optimization | `optimize_topology()` | 2-4 hours |
 | Full Workflow | `run_full_workflow()` | 4-6 hours |
 
-## 6. Key System Parameters
+## 7. Key System Parameters
 
 ### PV Array
 - **Module:** Canadian Solar CS6K-350MS (350W)
@@ -160,7 +228,7 @@ results = run_full_workflow('ConfigType', 'optimization');
 - **Cable Length:** 0.5 km
 - **Cable Type:** NYC 3×150 mm²
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
@@ -232,3 +300,18 @@ sim_config.StopTime = 3600;  % 1 hour instead of 24
 % Close unnecessary figures
 close all;
 ```
+
+### Issue: "Results look wrong" (e.g., V_pcc = 0)
+
+**Cause:** Workspace profiles not loaded  
+**Solution:**
+```matlab
+init_24h_profiles();      % Generate profiles
+init_pv_station_main();   % Load parameters
+sim('PV_Station_Main');   % Run simulation
+```
+
+### Issue: "Inverter currents are constant instead of varying"
+
+**Cause:** MPPT current reference not updating  
+**Solution:** Check that G_profile and T_profile are time-varying (not constants)

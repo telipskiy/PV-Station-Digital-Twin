@@ -166,9 +166,10 @@ function test_compatibility()
         fprintf('   OVERALL: ✓ ALL TESTS PASSED\n');
         fprintf('   System is ready for PV Station Digital Twin simulation\n\n');
         fprintf('   Next steps:\n');
-        fprintf('     1. >> init_pv_station_main\n');
-        fprintf('     2. >> build_all_models\n');
-        fprintf('     3. >> open(''PV_Station_Main.slx'')\n');
+        fprintf('     1. >> test_topology_core\n');
+        fprintf('     2. >> init_pv_station_main\n');
+        fprintf('     3. >> build_all_models\n');
+        fprintf('     4. >> open(''PV_Station_Main.slx'')\n');
 
 
     else

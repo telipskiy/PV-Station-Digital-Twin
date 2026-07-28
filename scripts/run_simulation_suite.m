@@ -1,124 +1,96 @@
-%% ========================================================================
-%  RUN SIMULATION SUITE - MULTI-CONFIGURATION EXPERIMENT RUNNER
+% ========================================================================
+%  DIGITAL TWIN: Reproducible parametric study of PV-station topology.
 %  ========================================================================
-%  PhD Research: Digital Twin for PV Station Design
-%  Purpose: Execute multiple simulation scenarios and accumulate results
-%  Date: 2025
+%  Author: Denys Telipskyi
+%  Date: 28.07.2026
+%
+%   This is a quasi-static time-series study.  It must not be presented as a
+%   switching-transient or harmonic study; those questions require a validated
+%   Simscape Electrical implementation and a suitable sampling frequency.
 %  ========================================================================
 
-function results_table = run_simulation_suite()
+function results_table = run_simulation_suite(varargin)
 
-    % Load initialization parameters
-    if ~exist('pv_station_parameters.mat', 'file')
-        init_pv_station_main;
+    p = inputParser;
+
+    addParameter(p, 'ModulesPerString', [8 10 12 15]);
+    addParameter(p, 'NumberOfStrings', [2 5 10 15]);
+    addParameter(p, 'Topology', {'string','multi-string','central'});
+    addParameter(p, 'InverterRatedPower', [10e3 25e3 50e3]);
+    addParameter(p, 'AcCableLengthKm', [0.1 0.5 1.0]);
+    addParameter(p, 'Export', true, @(x) islogical(x) && isscalar(x));
+    parse(p, varargin{:});
+
+    root = fileparts(fileparts(mfilename('fullpath')));
+    addpath(genpath(fullfile(root, 'scripts')));
+    parameterFile = fullfile(root, 'data', 'pv_station_parameters.mat');
+    
+    if ~isfile(parameterFile)
+        init_pv_station_main();
     end
-    load('pv_station_parameters.mat');
     
-    disp(' ');
-    disp('=========================================================================');
-    disp('SIMULATION SUITE RUNNER');
-    disp('Parametric Study of PV Station Configurations');
-    disp('=========================================================================');
-    disp(' ');
-    
-    % ====================================================================
-    % 1. DEFINE SCENARIO MATRIX (Design of Experiments)
-    % ====================================================================
-    
-    % Parameter ranges for parametric study
-    scenarios.ns_values = [5, 10, 15, 20];
-    scenarios.np_values = [2, 5, 10, 15];
-    scenarios.Pinv_values = [25e3, 50e3, 75e3, 100e3];
-    scenarios.topology_values = [1, 2, 3];
-    
-    % Generate all combinations
-    [ns_grid, np_grid, Pinv_grid, top_grid] = ndgrid(...
-        scenarios.ns_values, scenarios.np_values, scenarios.Pinv_values, scenarios.topology_values);
-    
-    n_scenarios = numel(ns_grid);
-    fprintf('Total Scenarios: %d\n', n_scenarios);
-    
-    results_table = table();
-    scenario_count = 0;
-    
-    % ====================================================================
-    % 2. EXECUTE SIMULATION FOR EACH SCENARIO
-    % ====================================================================
-    
-    h_waitbar = waitbar(0, 'Running simulations...');
-    
-    for idx = 1:n_scenarios
-        waitbar(idx/n_scenarios, h_waitbar, sprintf('Simulation %d of %d', idx, n_scenarios));
-        
-        n_s = ns_grid(idx);
-        n_p = np_grid(idx);
-        P_inv = Pinv_grid(idx);
-        topology = top_grid(idx);
-        
-        try
-            % Update PV configuration
-            PV.ns_current = n_s;
-            PV.np_current = n_p;
-            PV.Pfield_current = PV.Pmax_stc * n_s * n_p;
-            INV.P_rated_current = P_inv;
-            
-            % Simulate
-            simIn = Simulink.SimulationInput('PV_Station_Main');
-            simIn = setVariable(simIn, 'PV_config', PV);
-            simIn = setVariable(simIn, 'INV_config', INV);
-            
-            simOut = sim(simIn);
-            
-            % Extract metrics
-            t = simOut.tout;
-            P_pv = simOut.yout.P_pv.Data;
-            P_loss_cable = simOut.yout.P_loss_cable.Data;
-            
-            E_annual = trapz(t, P_pv) / 3.6e6;
-            W_loss_annual = trapz(t, P_loss_cable) / 3.6e6;
-            efficiency_sys = 100 * (1 - W_loss_annual / E_annual);
-            
-            C_cap_scenario = calculate_capital_cost(n_s, n_p, P_inv, ECONOMICS);
-            LCOE = (C_cap_scenario + ECONOMICS.annual_opex_rate * C_cap_scenario * ECONOMICS.study_period) / (E_annual * ECONOMICS.study_period);
-            
-            scenario_count = scenario_count + 1;
-            
-            new_row = table(scenario_count, n_s, n_p, P_inv/1000, topology, ...
-                E_annual, W_loss_annual, efficiency_sys, LCOE, C_cap_scenario, ...
-                'VariableNames', {'Scenario_ID', 'n_s', 'n_p', 'P_inv_kW', 'Topology_ID', ...
-                'E_annual_kWh', 'W_loss_kWh', 'Efficiency_percent', 'LCOE_USD_kWh', 'Capital_Cost_USD'});
-            
-            results_table = [results_table; new_row];
-            
-        catch sim_error
-            warning(sprintf('Simulation failed for scenario %d', idx));
-            continue;
+    S = load(parameterFile, 'PV', 'INV', 'TR', 'CABLE', 'SOLAR', 't_sim');
+    params = struct('PV', S.PV, 'INV', S.INV, 'TR', S.TR, 'CABLE', S.CABLE);
+
+    [nsm, nst, topology, pinv, lac] = ndgrid( ...
+        p.Results.ModulesPerString, p.Results.NumberOfStrings, ...
+        p.Results.Topology, p.Results.InverterRatedPower, p.Results.AcCableLengthKm);
+    nCases = numel(nsm);
+    records = cell(nCases, 16);
+
+    for i = 1:nCases
+        name = char(topology{i});
+
+        switch name
+            case 'string', nInv = nst(i);
+            case 'multi-string', nInv = min(ceil(nst(i)/2), nst(i));
+            otherwise, nInv = 1;
         end
+
+        cfg = create_topology_config( ...
+            'ModulesPerString', nsm(i), 'NumberOfStrings', nst(i), ...
+            'Topology', name, 'NumberOfInverters', nInv, ...
+            'InverterRatedPower', pinv(i), 'DcCableLength', 20, ...
+            'AcCableLength', lac(i));
+
+        r = evaluate_pv_station(cfg, params, S.SOLAR.G_profile, S.SOLAR.T_cell, ...
+            'CableTemperature', S.CABLE.T_operating);
+
+        E_pv = trapz(S.t_sim, r.P_pv_W) / 3.6e6;
+        E_pcc = trapz(S.t_sim, r.P_pcc_W) / 3.6e6;
+        E_loss = E_pv - E_pcc;
+        capex = local_capex(cfg, params);
+        records(i, :) = {i, nsm(i), nst(i), name, nInv, pinv(i)/1e3, lac(i), ...
+            E_pv, E_pcc, E_loss, 100 * E_pcc / max(E_pv, eps), ...
+            r.constraints.is_feasible, r.constraints.max_string_voltage_V, ...
+            r.constraints.max_string_current_A, r.constraints.max_mv_current_A, ...
+            r.constraints.transformer_loading_pu};
+        capexValues(i, 1) = capex;
+
     end
-    
-    close(h_waitbar);
-    
-    % Save results
-    writetable(results_table, 'simulation_results.csv');
-    save('simulation_results.mat', 'results_table');
-    
-    disp('=========================================================================');
-    fprintf('Scenarios Simulated: %d\n', scenario_count);
-    disp('Results saved to: simulation_results.csv');
-    disp('=========================================================================');
+
+    results_table = cell2table(records, 'VariableNames', { ...
+        'Scenario_ID', 'Modules_per_string', 'Number_of_strings', 'Topology', ...
+        'Number_of_inverters', 'Inverter_rating_kW', 'AC_cable_length_km', ...
+        'E_PV_day_kWh', 'E_PCC_day_kWh', 'E_losses_day_kWh', 'Efficiency_percent', ...
+        'Feasible', 'Max_string_voltage_V', 'Max_string_current_A', 'Max_MV_current_A', ...
+        'Transformer_loading_pu'});
+    results_table.CapEx_USD = capexValues;
+
+    if p.Results.Export
+        writetable(results_table, fullfile(root, 'reports', 'topology_study_results.csv'));
+        save(fullfile(root, 'reports', 'topology_study_results.mat'), 'results_table');
+    end
 
 end
 
-function C_cap = calculate_capital_cost(n_s, n_p, P_inv, ECONOMICS)
-    C_PV = 500;
-    C_INV = 300;
-    C_TR = 50;
-    C_CABLE = 200;
+function capex = local_capex(cfg, params)
+
+    pvKW = cfg.total_modules * params.PV.Pmax_stc / 1e3;
+    invKW = cfg.number_of_inverters * cfg.inverter_rated_power / 1e3;
+    trKVA = max(invKW, pvKW);
+
+    % These unit costs are assumptions, not current market quotations.
+    capex = 1.2 * (500 * pvKW + 300 * invKW + 50 * trKVA + 200 * cfg.ac_cable_length_km);
     
-    P_pv_kw = 0.350 * n_s * n_p;
-    S_tr_kva = max(P_inv, P_pv_kw * 1000) / 1000;
-    L_cable = 0.5;
-    
-    C_cap = P_pv_kw * C_PV + (P_inv/1000) * C_INV + S_tr_kva * C_TR + L_cable * C_CABLE;
-    C_cap = C_cap * 1.2;
 end

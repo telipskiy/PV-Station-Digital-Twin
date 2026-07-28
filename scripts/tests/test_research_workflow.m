@@ -1,0 +1,29 @@
+% ========================================================================
+%  DIGITAL TWIN: Smoke test for the documented research workflow.
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 28.07.2026
+%
+%  ========================================================================
+
+function test_research_workflow()
+    
+    root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+    addpath(genpath(fullfile(root, 'scripts')));
+
+    [~, analysis] = run_complete_simulation( ...
+        'Topology', 'multi-string', 'ModulesPerString', 10, ...
+        'NumberOfStrings', 6, 'NumberOfInverters', 3, ...
+        'InverterRatedPower', 10e3, 'Export', false);
+
+    assert(analysis.E_pcc_day_kWh > 0 && analysis.constraints.is_feasible);
+
+    [~, objective, study] = optimize_topology( ...
+        'ModulesPerString', 10, 'NumberOfStrings', [2 5], ...
+        'Topology', {'central','string'}, 'InverterRatedPower', 10e3, ...
+        'TransformerRatedPower', 25e3, 'AcCableLengthKm', 0.5, 'Export', false);
+
+    assert(isfinite(objective) && study.optimum.Feasible);
+    
+    disp('test_research_workflow: PASS');
+end

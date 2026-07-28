@@ -236,6 +236,155 @@ title('Comparative Metrics'); legend('Cost', 'LCOE', 'Efficiency'); grid on;
 
 **Назва файлу:** `PV_Station_Main.slx`
 
+## SIGNAL FLOW DIAGRAM
+
+```
+┌─────────────────┐
+│   Solar Input   │
+│  G, T, Boost V  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│         PV_Array_Subsystem                  │
+│  Single Diode Model + MPPT + DC-DC Boost    │
+│  ┌──────────────────────────────────────┐   │
+│  │ Outputs: P_pv, V_pv, I_pv,           │   │
+│  │          V_dc(600V), I_dc, I_ref     │   │
+│  └──────────────────────────────────────┘   │
+└───┬──┬──────────────────────────────────────┘
+    │  │
+    ▼  ▼ [V_dc, I_dc, phase, U_grid, I_ref]
+┌────────────────────────────────────────────────────┐
+│       Inverter_Subsystem                           │
+│  VSI + LCL Filter + PLL + Current Control          │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ Output 1-3: I_a/b/c [A]  ←────────────┐     │   │
+│  │ Output 4-6: V_a/b/c [V]  ───┐         │     │   │
+│  │ Output 7: f_grid [Hz]       │         │     │   │
+│  └─────────────────────────────────────────────┘   │
+└───────┬──────────────────────────┬─────────────────┘
+        │                          │
+  [I_a/b/c]                  [V_a/b/c]
+        │                          │
+        ▼                          ▼
+┌─────────────────────────────────────────────────────┐
+│    Transformer_Subsystem (Dyn11, 63kVA)             │
+│    T-model + Losses + Temp Dependency               │
+│  ┌──────────────────────────────────────────────┐   │
+│  │ Input 1-3:  V_prim [V]  ← Inverter 4-6       │   │
+│  │ Input 4-6:  I_prim [A]  ← Inverter 1-3       │   │
+│  │ Input 7:    T [°C]      ← Temp sensor        │   │
+│  │                                              │   │
+│  │ Output 1-3: V_sec (10kV) [V]                 │   │
+│  │ Output 4-6: I_sec [A]    ───────┐            │   │
+│  │ Output 7:   P_loss [W]          │            │   │
+│  └──────────────────────────────────────────────┘   │
+└──────────────────────────────┬──────────────────────┘
+                               │ [I_a/b/c @ 10kV]
+                               ▼
+┌────────────────────────────────────────────────────┐
+│      Network_Subsystem (Grid 10kV, 50Hz)           │
+│      Cable Impedance + PCC Voltage Calc            │
+│  ┌──────────────────────────────────────────────┐  │
+│  │ Input 1-3: I_pcc [A]  ← Transformer 4-6      │  │
+│  │ Input 4-6: I_load [A] ← Load Profile         │  │
+│  │                                              │  │
+│  │ Output 1-3: V_pcc [V]                        │  │
+│  │ Output 4:   P_cable_loss [W]                 │  │
+│  │ Output 5:   f_grid [Hz]                      │  │
+│  └──────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  FEEDBACK LOOPS                                     │
+│  ▼─────────────────────────────────────┐            │
+│  Inverter PLL ←── Grid Phase (Network) │            │
+│  Inverter Ref ←── MPPT (PV Array)      │            │
+│  Transformer T ←── Temp Sensor         │            │
+└─────────────────────────────────────────────────────┘
+```
+
+## MODEL PORT DEFINITIONS
+
+### PV_Array_Subsystem
+
+```
+INPUTS (3 ports):
+  Port 1: G_Solar_in        [W/m²]    - Solar irradiance
+  Port 2: T_cell_in         [°C]      - Cell temperature
+  Port 3: V_boost_demand    [V]       - DC link voltage setpoint
+
+OUTPUTS (6 ports):
+  Port 1: P_pv_out          [W]       - PV array power
+  Port 2: V_pv_out          [V]       - PV array voltage
+  Port 3: I_pv_out          [A]       - PV array current
+  Port 4: V_dc_out          [V]       - Boosted DC voltage (600V)
+  Port 5: I_dc_out          [A]       - DC current to inverter
+  Port 6: I_ref_out         [A]       - Current reference (for MPPT)
+```
+
+### Inverter_Subsystem
+
+```
+INPUTS (5 ports):
+  Port 1: V_dc_in           [V]       - DC link voltage
+  Port 2: I_dc_in           [A]       - DC link current
+  Port 3: grid_phase_ref    [rad]     - Phase reference from PLL
+  Port 4: U_grid_in         [V]       - Grid voltage (for synchronization)
+  Port 5: I_ref_mppt        [A]       - Current reference from MPPT
+
+OUTPUTS (7 ports):
+  Port 1: I_a_out           [A]       - Phase A current (grid)
+  Port 2: I_b_out           [A]       - Phase B current (grid)
+  Port 3: I_c_out           [A]       - Phase C current (grid)
+  Port 4: V_a_out           [V]       - Phase A voltage (bridge output)
+  Port 5: V_b_out           [V]       - Phase B voltage (bridge output)
+  Port 6: V_c_out           [V]       - Phase C voltage (bridge output)
+  Port 7: f_grid_out        [Hz]      - Grid frequency (50Hz)
+```
+
+### Transformer_Subsystem
+
+```
+INPUTS (7 ports):
+  Port 1: V_a_prim_in       [V]       - Phase A primary voltage
+  Port 2: V_b_prim_in       [V]       - Phase B primary voltage
+  Port 3: V_c_prim_in       [V]       - Phase C primary voltage
+  Port 4: I_a_prim_in       [A]       - Phase A primary current
+  Port 5: I_b_prim_in       [A]       - Phase B primary current
+  Port 6: I_c_prim_in       [A]       - Phase C primary current
+  Port 7: T_transformer_in  [°C]      - Transformer temperature
+
+OUTPUTS (7 ports):
+  Port 1: V_a_sec_out       [V]       - Phase A secondary voltage (10kV)
+  Port 2: V_b_sec_out       [V]       - Phase B secondary voltage (10kV)
+  Port 3: V_c_sec_out       [V]       - Phase C secondary voltage (10kV)
+  Port 4: I_a_sec_out       [A]       - Phase A secondary current
+  Port 5: I_b_sec_out       [A]       - Phase B secondary current
+  Port 6: I_c_sec_out       [A]       - Phase C secondary current
+  Port 7: P_loss_out        [W]       - Total losses (Fe + Cu)
+```
+
+### Network_Subsystem
+
+```
+INPUTS (6 ports):
+  Port 1: I_a_pcc_in        [A]       - Phase A current (from transformer)
+  Port 2: I_b_pcc_in        [A]       - Phase B current (from transformer)
+  Port 3: I_c_pcc_in        [A]       - Phase C current (from transformer)
+  Port 4: I_load_a_in       [A]       - Phase A load current
+  Port 5: I_load_b_in       [A]       - Phase B load current
+  Port 6: I_load_c_in       [A]       - Phase C load current
+
+OUTPUTS (5 ports):
+  Port 1: V_pcc_a_out       [V]       - PCC Phase A voltage
+  Port 2: V_pcc_b_out       [V]       - PCC Phase B voltage
+  Port 3: V_pcc_c_out       [V]       - PCC Phase C voltage
+  Port 4: P_cable_loss_out  [W]       - Cable losses (I²R)
+  Port 5: f_grid_out        [Hz]      - Grid frequency (50Hz)
+```
+
 #### Основні підсистеми:
 
 1. **Configuration Manager Block**

@@ -8,6 +8,9 @@
 %  ========================================================================
 
 function load_simulink_models()
+
+    root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+    addpath(fullfile(root, 'simulink_models'));
     
     % Load subsystems
     subsystems = {'Inverter_Subsystem', 'Network_Subsystem', 'PV_Array_Subsystem', 'Transformer_Subsystem'};

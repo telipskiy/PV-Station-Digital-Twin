@@ -44,10 +44,10 @@ function run_system()
     
     disp(' ');
     disp('=========================================================================');
-    disp('STEP 3: Parameters Initialization');
+    disp('STEP 3: Parameters Initialization & Topology Test');
     disp('=========================================================================');
     % Load all system parameters
-    init_pv_station_main();
+    test_topology_core();
     
     disp(' ');
     disp('=========================================================================');
@@ -81,7 +81,6 @@ function run_system()
     
     fprintf('Simulation configuration:\n');
     fprintf('  • Total time: %.0f seconds (24 hours)\n', sim_time_total);
-    fprintf('  • Solver: ode45 (variable-step)\n');
     fprintf('  • Start time: 0 s\n');
     fprintf('  • Stop time: %.0f s\n', sim_time_total);
 
