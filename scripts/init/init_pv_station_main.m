@@ -9,6 +9,10 @@
 
 function init_pv_station_main()
 
+    % Reproducible synthetic profiles.  Replace these profiles with measured
+    % meteorological data for a case study and record the data provenance.
+    rng(20260728, 'twister');
+
     % ========================================================================
     % 1. ПАРАМЕТРИ ФОТОВОЛЬТАЇЧНОГО ПОЛЯ
     % Мета: Визначити всі параметри для фотоелектричних модулів та конфігурації масиву.
@@ -205,6 +209,7 @@ function init_pv_station_main()
     CABLE.R_ref = CABLE.R;          % Опір при 20°C
     CABLE.T_ref = 20;               % Опорна температура
     CABLE.alpha = 0.00403;          % Температурний коефіцієнт [1/°C]
+    CABLE.T_operating = 20;         % Температура провідника для базового сценарію [°C]
     
     disp('=== Network Parameters ===');
     fprintf('Grid Voltage: %.0f kV\n', GRID.U_rated);
@@ -298,8 +303,20 @@ function init_pv_station_main()
     %   L_cab   - довжина кабелю (0.1-2 km)
     
     X_opt.lower_bounds = [5, 2, 1, 25e3, 25e3, 0.4, 1, 0.1];
-    X_opt.upper_bounds = [20, 20, 3, 100e3, 100e3, 20, 3, 2];
+    X_opt.upper_bounds = [20, 20, 20, 100e3, 100e3, 20, 3, 2];
     X_opt.default = [PV.ns_default, PV.np_default, 1, INV.P_rated, TR.S_rated, TR.U2_rated, 1, CABLE.length];
+
+    % Єдина конфігурація топології для стаціонарних і Simulink-дослідів.
+    % string: інвертор на кожен стрінг; multi-string: групи стрінгів;
+    % central: один інвертор для всього поля.
+    TOPOLOGY = create_topology_config( ...
+        'ModulesPerString', PV.ns_default, ...
+        'NumberOfStrings', PV.np_default, ...
+        'Topology', 'central', ...
+        'NumberOfInverters', 1, ...
+        'InverterRatedPower', INV.P_rated, ...
+        'DcCableLength', 20, ...
+        'AcCableLength', CABLE.length);
     
     % Вагові коефіцієнти цільової функції нормовані на 1 (багатокритеріальна оптимізація)
     % Загальна вартість = w_cap*Fcap + w_loss*Floss + w_rel*Frel + w_opex*Fopex + w_pq*Fpq
@@ -394,8 +411,17 @@ function init_pv_station_main()
     % ========================================================================
     
     % Збереження в структурі даних
-    save('./data/pv_station_parameters.mat', 'PV', 'DCDC', 'INV', 'TR', 'GRID', 'CABLE', ...
+    PARAMS = struct('PV', PV, 'DCDC', DCDC, 'INV', INV, 'TR', TR, 'GRID', GRID, 'CABLE', CABLE);
+    save('./data/pv_station_parameters.mat', 'PV', 'DCDC', 'INV', 'TR', 'GRID', 'CABLE', 'TOPOLOGY', 'PARAMS', ...
     'LOAD', 'SOLAR', 'X_opt', 'WEIGHT', 'ECONOMICS', 'SIM', 'SITE', 't_sim', 'hour');
+
+    % Referenced Simulink models evaluate block parameters in the base
+    % workspace.  Publish the same parameter objects that were archived.
+    baseVariables = {'PV','DCDC','INV','TR','GRID','CABLE','TOPOLOGY','PARAMS', ...
+        'LOAD','SOLAR','X_opt','WEIGHT','ECONOMICS','SIM','SITE','t_sim','hour'};
+    for k = 1:numel(baseVariables)
+        assignin('base', baseVariables{k}, eval(baseVariables{k}));
+    end
     
     % ========================================================================
     % РЕЗУЛЬТАТ

@@ -17,20 +17,18 @@
 function build_all_models()
     
     fprintf('Creating Simulink Models for PV Station Digital Twin...\n\n');
-
     
     % Get script directory
-    script_dir = fileparts(fileparts(mfilename('fullpath')));
-    project_root = fileparts(script_dir);
-    models_dir = fullfile(project_root, 'simulink_models');
+    models_dir = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))), 'simulink_models');
     
     % Create models directory if needed
     if ~exist(models_dir, 'dir')
         mkdir(models_dir);
     end
     
-    % Add paths
-    addpath(genpath(fullfile(project_root, 'scripts')));
+    % The referenced-model blocks resolve their names through this path.
+    addpath(models_dir);
+    addpath(genpath(fullfile(fileparts(models_dir), 'scripts')));
     
     tic;
     

@@ -14,16 +14,15 @@ Digital twin system of photovoltaic station implemented in **MATLAB Simulink** u
 - Симуляція: 24-годинний цикл у реальному часі/прискореному режимі
 - Оптимізація: Багатокритеріальна оптимізація з GA (Genetic Algorithm)
 
-## Status
+## Статус дослідницької моделі
 
-✅ **Complete**
-- Single Diode PV model with temperature & irradiance dependency
-- Advanced inverter control (PLL, SVM, current regulation)
-- Comprehensive transformer model with losses
-- Grid network with cable impedance
-- 24-hour simulation
-- Power quality metrics
-- Data logging & visualization
+Модель перебуває в активній актуалізації. Параметричне квазіусталене ядро
+дозволяє варіювати структуру поля, розподіл стрінгів між інверторами та
+довжини DC/AC кабелів. Simulink-моделі є базою для подальшої валідації
+динаміки. Твердження про THD, PLL, SVM, відповідність IEEE/IEC або повну
+фізичну валідність не слід робити до окремої верифікації.
+
+Див. [межі застосовності та валідацію](docs/MODEL_SCOPE_AND_VALIDATION.md).
 
 
 ## Вимоги до системи / System Requirements

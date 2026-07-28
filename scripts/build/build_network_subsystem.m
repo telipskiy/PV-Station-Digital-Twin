@@ -101,15 +101,16 @@ function hModel = build_network_subsystem(varargin)
     
     % Cable parameters
     R_cable = add_block('simulink/Sources/Constant', [model_name '/R_cable']);
-    set_param(R_cable, 'Value', '0.06');  % 0.06 Ω per phase
+    % CABLE.R_ref is calculated from CABLE.length in the initializer.
+    set_param(R_cable, 'Value', 'CABLE.R_ref*(1+CABLE.alpha*(CABLE.T_operating-CABLE.T_ref))');
     set_param(R_cable, 'Position', [100 260 140 280]);
     
     X_cable = add_block('simulink/Sources/Constant', [model_name '/X_cable']);
-    set_param(X_cable, 'Value', '0.04');  % 0.04 Ω per phase
+    set_param(X_cable, 'Value', 'CABLE.X');
     set_param(X_cable, 'Position', [100 300 140 320]);
     
     L_cable = add_block('simulink/Sources/Constant', [model_name '/L_cable']);
-    set_param(L_cable, 'Value', '0.005');  % X_cable / (2*pi*50) = L
+    set_param(L_cable, 'Value', 'CABLE.X/(2*pi*GRID.f_rated)');
     set_param(L_cable, 'Position', [100 340 140 360]);
     
     % Cable losses: P_loss = I²·R
@@ -256,6 +257,6 @@ function hModel = build_network_subsystem(varargin)
     fprintf('   Inputs: I_a/b/c_pcc (A), I_load_a/b/c (A)\n');
     fprintf('   Outputs: V_pcc_a/b/c (V), P_cable_loss (W), f_grid (Hz)\n');
     fprintf('   Grid: 10 kV, 50 Hz, 3-phase\n');
-    fprintf('   Cable: R=0.06Ω, X=0.04Ω per phase\n');
+    fprintf('   Cable: R and X are evaluated from CABLE.length and conductor temperature\n');
     
 end
