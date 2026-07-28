@@ -1,10 +1,18 @@
-function result = evaluate_pv_station(cfg, params, G, Tcell, varargin)
-%EVALUATE_PV_STATION Quasi-static, energy-balanced PV-station calculation.
+% ========================================================================
+%  DIGITAL TWIN: Quasi-static, energy-balanced PV-station calculation.
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 28.07.2026
+%
 %   G and Tcell may be scalars or equally sized vectors.  The calculation
 %   preserves the topology explicitly: each string is assigned to an
 %   inverter, and both DC and AC cable losses depend on their lengths.
+%  ========================================================================
+
+function result = evaluate_pv_station(cfg, params, G, Tcell, varargin)
 
     p = inputParser;
+    
     addParameter(p, 'CableTemperature', 20, @(x) validateattributes(x, {'numeric'}, {'scalar'}));
     addParameter(p, 'PowerFactor', 1, @(x) validateattributes(x, {'numeric'}, {'scalar','>',0,'<=',1}));
     parse(p, varargin{:});
@@ -23,7 +31,7 @@ function result = evaluate_pv_station(cfg, params, G, Tcell, varargin)
         end
     end
 
-    % String MPP model.  Coefficients are specified at STC; gamma_P is %/K.
+    % String MPP model. Coefficients are specified at STC; gamma_P is %/K.
     g = G(:); t = Tcell(:);
     irradianceFactor = g / params.PV.G_ref;
     temperatureFactor = max(0, 1 + (params.PV.gamma_P / 100) .* (t - params.PV.T_ref));
@@ -75,4 +83,5 @@ function result = evaluate_pv_station(cfg, params, G, Tcell, varargin)
     result.I_string_mpp_A = reshape(Istring, size(G));
     result.configuration = cfg;
     result.constraints = assess_topology_constraints(result, params);
+    
 end

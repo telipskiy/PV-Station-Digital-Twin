@@ -1,8 +1,15 @@
-function [sim_results, analysis_results] = run_complete_simulation(varargin)
-%RUN_COMPLETE_SIMULATION Execute the validated quasi-static station workflow.
+% ========================================================================
+%  DIGITAL TWIN: Execute the validated quasi-static station workflow.
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 28.07.2026
+%
 %   This function does not claim a switching-transient Simulink simulation.
 %   Use build_all_models separately while developing the dynamic model.
+%  ========================================================================
 
+function [sim_results, analysis_results] = run_complete_simulation(varargin)
+    
     p = inputParser;
     addParameter(p, 'Topology', 'central');
     addParameter(p, 'ModulesPerString', 10);
@@ -43,4 +50,5 @@ function [sim_results, analysis_results] = run_complete_simulation(varargin)
     if p.Results.Export
         save(fullfile(root, 'reports', 'single_topology_result.mat'), 'sim_results', 'analysis_results');
     end
+    
 end

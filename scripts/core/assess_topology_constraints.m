@@ -1,8 +1,15 @@
-function assessment = assess_topology_constraints(result, params)
-%ASSESS_TOPOLOGY_CONSTRAINTS Screen a topology against electrical limits.
+%  ========================================================================
+%  DIGITAL TWIN: Screen a topology against electrical limits.
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 28.07.2026
+%  
 %   Ampacity values are design inputs, not tabulated defaults: their valid
 %   values depend on installation method, ambient temperature and grouping.
+%  ========================================================================
 
+function assessment = assess_topology_constraints(result, params)
+    
     cfg = result.configuration;
     Pinv = result.P_inverter_ac_W(:);
     Imv = result.I_mv_A(:);
@@ -28,4 +35,5 @@ function assessment = assess_topology_constraints(result, params)
     assessment.is_feasible = voltageOK && assessment.dc_ampacity_ok && ...
         assessment.ac_ampacity_ok && assessment.inverter_loading_ok && assessment.transformer_loading_ok;
     assessment.notes = 'Screening only; voltage drop, insulation, protection and thermal calculations require project-specific inputs.';
+    
 end

@@ -20,6 +20,7 @@ function build_all_models()
     
     % Get script directory
     models_dir = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))), 'simulink_models');
+    scripts_dir = genpath(fullfile(fileparts(models_dir), 'scripts'));
     
     % Create models directory if needed
     if ~exist(models_dir, 'dir')
@@ -28,7 +29,7 @@ function build_all_models()
     
     % The referenced-model blocks resolve their names through this path.
     addpath(models_dir);
-    addpath(genpath(fullfile(fileparts(models_dir), 'scripts')));
+    addpath(scripts_dir);
     
     tic;
     

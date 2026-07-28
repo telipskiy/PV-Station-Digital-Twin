@@ -3,7 +3,9 @@ function test_topology_core()
 
     root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
     addpath(genpath(fullfile(root, 'scripts')));
+
     init_pv_station_main();
+    
     S = load(fullfile(root, 'data', 'pv_station_parameters.mat'), 'PARAMS');
 
     central = create_topology_config('ModulesPerString', 10, 'NumberOfStrings', 6, ...
@@ -29,5 +31,6 @@ function test_topology_core()
     rConstrained = evaluate_pv_station(constrained, S.PARAMS, 1000, 25);
     assert(~rConstrained.constraints.is_feasible && ~rConstrained.constraints.dc_ampacity_ok, ...
         'The validator must reject insufficient DC ampacity.');
+    
     disp('test_topology_core: PASS');
 end

@@ -1,9 +1,17 @@
-function cfg = create_topology_config(varargin)
-%CREATE_TOPOLOGY_CONFIG Configuration of a PV station electrical topology.
+% ========================================================================
+%  DIGITAL TWIN: Configuration of a PV station electrical topology.
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 28.07.2026
+%
 %   The configuration is deliberately independent of Simulink so that the
 %   same design point can be used in steady-state studies and dynamic models.
+%  ========================================================================
 
+function cfg = create_topology_config(varargin)
+    
     p = inputParser;
+
     addParameter(p, 'ModulesPerString', 10, @(x) validateattributes(x, {'numeric'}, {'scalar','integer','positive'}));
     addParameter(p, 'NumberOfStrings', 5, @(x) validateattributes(x, {'numeric'}, {'scalar','integer','positive'}));
     addParameter(p, 'Topology', 'central', @(x) any(strcmpi(string(x), ["string", "multi-string", "central"])));
@@ -37,6 +45,7 @@ function cfg = create_topology_config(varargin)
         otherwise % central
             requiredInverters = 1;
     end
+
     if strcmp(cfg.topology, 'string')
         cfg.number_of_inverters = requiredInverters;
     elseif cfg.number_of_inverters > cfg.number_of_strings
@@ -45,4 +54,5 @@ function cfg = create_topology_config(varargin)
 
     cfg.string_to_inverter = mod(0:cfg.number_of_strings-1, cfg.number_of_inverters) + 1;
     cfg.total_modules = cfg.modules_per_string * cfg.number_of_strings;
+    
 end

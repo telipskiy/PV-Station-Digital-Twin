@@ -9,7 +9,7 @@
 
 function init_pv_station_main()
 
-    % Reproducible synthetic profiles.  Replace these profiles with measured
+    % Reproducible synthetic profiles. Replace these profiles with measured
     % meteorological data for a case study and record the data provenance.
     rng(20260728, 'twister');
 
@@ -272,7 +272,7 @@ function init_pv_station_main()
         end
     end
     
-    SOLAR.G_profile = G_profile;                                         % Сонячна радіація [Вт/м²]
+    SOLAR.G_profile = G_profile; % Сонячна радіація [Вт/м²]
 
     % Модель температури елемента: T_cell = 25 + 30*(G/G_max)² + випадковий шум
     % Вища опроміненість → вища температура елемента (знижує ефективність)

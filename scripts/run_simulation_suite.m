@@ -1,10 +1,18 @@
-function results_table = run_simulation_suite(varargin)
-%RUN_SIMULATION_SUITE Reproducible parametric study of PV-station topology.
+% ========================================================================
+%  DIGITAL TWIN: Reproducible parametric study of PV-station topology.
+%  ========================================================================
+%  Author: Denys Telipskyi
+%  Date: 28.07.2026
+%
 %   This is a quasi-static time-series study.  It must not be presented as a
 %   switching-transient or harmonic study; those questions require a validated
 %   Simscape Electrical implementation and a suitable sampling frequency.
+%  ========================================================================
+
+function results_table = run_simulation_suite(varargin)
 
     p = inputParser;
+
     addParameter(p, 'ModulesPerString', [8 10 12 15]);
     addParameter(p, 'NumberOfStrings', [2 5 10 15]);
     addParameter(p, 'Topology', {'string','multi-string','central'});
@@ -16,9 +24,11 @@ function results_table = run_simulation_suite(varargin)
     root = fileparts(fileparts(mfilename('fullpath')));
     addpath(genpath(fullfile(root, 'scripts')));
     parameterFile = fullfile(root, 'data', 'pv_station_parameters.mat');
+    
     if ~isfile(parameterFile)
         init_pv_station_main();
     end
+    
     S = load(parameterFile, 'PV', 'INV', 'TR', 'CABLE', 'SOLAR', 't_sim');
     params = struct('PV', S.PV, 'INV', S.INV, 'TR', S.TR, 'CABLE', S.CABLE);
 
@@ -30,16 +40,19 @@ function results_table = run_simulation_suite(varargin)
 
     for i = 1:nCases
         name = char(topology{i});
+
         switch name
             case 'string', nInv = nst(i);
             case 'multi-string', nInv = min(ceil(nst(i)/2), nst(i));
             otherwise, nInv = 1;
         end
+
         cfg = create_topology_config( ...
             'ModulesPerString', nsm(i), 'NumberOfStrings', nst(i), ...
             'Topology', name, 'NumberOfInverters', nInv, ...
             'InverterRatedPower', pinv(i), 'DcCableLength', 20, ...
             'AcCableLength', lac(i));
+
         r = evaluate_pv_station(cfg, params, S.SOLAR.G_profile, S.SOLAR.T_cell, ...
             'CableTemperature', S.CABLE.T_operating);
 
@@ -52,7 +65,8 @@ function results_table = run_simulation_suite(varargin)
             r.constraints.is_feasible, r.constraints.max_string_voltage_V, ...
             r.constraints.max_string_current_A, r.constraints.max_mv_current_A, ...
             r.constraints.transformer_loading_pu};
-        capexValues(i, 1) = capex; %#ok<AGROW>
+        capexValues(i, 1) = capex;
+
     end
 
     results_table = cell2table(records, 'VariableNames', { ...
@@ -67,12 +81,16 @@ function results_table = run_simulation_suite(varargin)
         writetable(results_table, fullfile(root, 'reports', 'topology_study_results.csv'));
         save(fullfile(root, 'reports', 'topology_study_results.mat'), 'results_table');
     end
+
 end
 
 function capex = local_capex(cfg, params)
+
     pvKW = cfg.total_modules * params.PV.Pmax_stc / 1e3;
     invKW = cfg.number_of_inverters * cfg.inverter_rated_power / 1e3;
     trKVA = max(invKW, pvKW);
+
     % These unit costs are assumptions, not current market quotations.
     capex = 1.2 * (500 * pvKW + 300 * invKW + 50 * trKVA + 200 * cfg.ac_cable_length_km);
+    
 end
