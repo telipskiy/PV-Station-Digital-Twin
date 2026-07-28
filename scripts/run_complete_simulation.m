@@ -1,81 +1,46 @@
-% ========================================================================
-%  RUN COMPLETE SIMULATION - MAIN EXECUTION SCRIPT
-%  ========================================================================
-%  Purpose: Execute full PV station simulation with all subsystems
-%  Platform: MATLAB R2025a on macOS with Apple Silicon
-%  Date: 2026-05-27
-%  ========================================================================
+function [sim_results, analysis_results] = run_complete_simulation(varargin)
+%RUN_COMPLETE_SIMULATION Execute the validated quasi-static station workflow.
+%   This function does not claim a switching-transient Simulink simulation.
+%   Use build_all_models separately while developing the dynamic model.
 
-function [sim_results, analysis_results] = run_complete_simulation()
-    
-    clear all; 
-    close all; 
-    clc;
-    
-    disp(' ');
-    disp('=========================================================================');
-    disp('PV STATION DIGITAL TWIN - COMPLETE SIMULATION');
-    disp('macOS Apple Silicon | MATLAB R2025a');
-    disp('=========================================================================');
-    disp(' ');
-    
-    % Step 1: Initialize parameters
-    disp('STEP 1: Initializing System Parameters...');
-    init_pv_station_main;
-    disp('✓ Parameters loaded');
-    disp(' ');
-    
-    % Step 2: Configure macOS compatibility
-    disp('STEP 2: Configuring macOS Compatibility...');
-    configure_macos_compatibility;
-    disp(' ');
-    
-    % Step 3: Create Simulink models
-    disp('STEP 3: Creating Simulink Models...');
-    create_simulink_models;
-    disp(' ');
-    
-    % Step 4: Load simulation parameters
-    disp('STEP 4: Loading Simulation Data...');
-    if isfile('pv_station_parameters.mat')
-        load('pv_station_parameters.mat');
-        disp('✓ Simulation data loaded');
-    else
-        disp('Note: pv_station_parameters.mat not found, using default parameters');
-    end
-    disp(' ');
-    
-    % Step 5: Run simulation
-    disp('STEP 5: Running Main Simulation...');
-    disp('Simulation time: 86400 seconds (24 hours)');
-    
-    try
-        % Run the model
-        simOut = sim('PV_Station_Main', 'ShowProgress', 'on');
-        disp('✓ Simulation completed successfully');
-        
-    catch ME
-        warning(ME.identifier, 'Simulation completed with status: %s', ME.message);
-    end
-    disp(' ');
-    
-    % Step 6: Extract results
-    disp('STEP 6: Processing Results...');
-    sim_results = struct();
-    sim_results.timestamp = datetime('now');
-    disp('✓ Results processed');
-    disp(' ');
-    
-    % Step 7: Analysis
-    disp('STEP 7: Running Analysis...');
+    p = inputParser;
+    addParameter(p, 'Topology', 'central');
+    addParameter(p, 'ModulesPerString', 10);
+    addParameter(p, 'NumberOfStrings', 5);
+    addParameter(p, 'NumberOfInverters', 1);
+    addParameter(p, 'InverterRatedPower', 50e3);
+    addParameter(p, 'DcCableLength', 20);
+    addParameter(p, 'AcCableLength', 0.5);
+    addParameter(p, 'Export', true, @(x) islogical(x) && isscalar(x));
+    parse(p, varargin{:});
+
+    root = fileparts(fileparts(mfilename('fullpath')));
+    addpath(genpath(fullfile(root, 'scripts')));
+    init_pv_station_main();
+    S = load(fullfile(root, 'data', 'pv_station_parameters.mat'), ...
+        'PARAMS', 'SOLAR', 't_sim', 'CABLE');
+    cfg = create_topology_config( ...
+        'Topology', p.Results.Topology, ...
+        'ModulesPerString', p.Results.ModulesPerString, ...
+        'NumberOfStrings', p.Results.NumberOfStrings, ...
+        'NumberOfInverters', p.Results.NumberOfInverters, ...
+        'InverterRatedPower', p.Results.InverterRatedPower, ...
+        'DcCableLength', p.Results.DcCableLength, ...
+        'AcCableLength', p.Results.AcCableLength);
+    sim_results = evaluate_pv_station(cfg, S.PARAMS, S.SOLAR.G_profile, S.SOLAR.T_cell, ...
+        'CableTemperature', S.CABLE.T_operating);
+    sim_results.time_s = S.t_sim;
+
     analysis_results = struct();
-    analysis_results.summary = 'Analysis complete';
-    disp('✓ Analysis complete');
-    disp(' ');
-    
-    disp('=========================================================================');
-    disp('✓ SIMULATION COMPLETE');
-    disp('=========================================================================');
-    disp(' ');
-    
+    analysis_results.E_pv_day_kWh = trapz(S.t_sim, sim_results.P_pv_W) / 3.6e6;
+    analysis_results.E_pcc_day_kWh = trapz(S.t_sim, sim_results.P_pcc_W) / 3.6e6;
+    analysis_results.E_loss_day_kWh = analysis_results.E_pv_day_kWh - analysis_results.E_pcc_day_kWh;
+    analysis_results.average_efficiency_percent = 100 * analysis_results.E_pcc_day_kWh / ...
+        max(analysis_results.E_pv_day_kWh, eps);
+    analysis_results.constraints = sim_results.constraints;
+    analysis_results.model_scope = 'Quasi-static topology and loss study; not a switching-transient or harmonic result.';
+
+    if p.Results.Export
+        save(fullfile(root, 'reports', 'single_topology_result.mat'), 'sim_results', 'analysis_results');
+    end
 end

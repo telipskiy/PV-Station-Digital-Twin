@@ -23,5 +23,11 @@ function test_topology_core()
     rLong = evaluate_pv_station(longCable, S.PARAMS, 1000, 25);
     assert(rLong.P_ac_cable_loss_W > rShort.P_ac_cable_loss_W, 'AC cable length must affect losses.');
     assert(rLong.P_dc_loss_W > rShort.P_dc_loss_W, 'DC cable length must affect losses.');
+    assert(rShort.constraints.is_feasible, 'Default design-point limits must be feasible.');
+    constrained = create_topology_config('ModulesPerString', 10, 'NumberOfStrings', 5, ...
+        'DcCableAmpacity', 5);
+    rConstrained = evaluate_pv_station(constrained, S.PARAMS, 1000, 25);
+    assert(~rConstrained.constraints.is_feasible && ~rConstrained.constraints.dc_ampacity_ok, ...
+        'The validator must reject insufficient DC ampacity.');
     disp('test_topology_core: PASS');
 end

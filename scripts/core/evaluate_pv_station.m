@@ -34,8 +34,8 @@ function result = evaluate_pv_station(cfg, params, G, Tcell, varargin)
 
     % DC losses are evaluated per string so unequal collector lengths matter.
     rhoCu = 0.0175; % ohm mm^2/m at 20 C
-    adc = 6;        % default string-cable cross-section, mm^2
-    rdc = 2 * rhoCu .* dcLength / adc .* (1 + 0.00393 * (p.Results.CableTemperature - 20));
+    rdc = 2 * rhoCu .* dcLength / cfg.dc_cable_cross_section_mm2 .* ...
+        (1 + 0.00393 * (p.Results.CableTemperature - 20));
     PdcLoss = sum((Istring.^2) * rdc.', 2);
     PdcAvailable = max(cfg.number_of_strings * Pstring - PdcLoss, 0);
 
@@ -71,5 +71,8 @@ function result = evaluate_pv_station(cfg, params, G, Tcell, varargin)
     result.efficiency = reshape(Ppcc ./ max(cfg.number_of_strings * Pstring, eps), size(G));
     result.R_ac_ohm_per_phase = Rac;
     result.I_mv_A = reshape(Imv, size(G));
+    result.V_string_mpp_V = reshape(Vstring, size(G));
+    result.I_string_mpp_A = reshape(Istring, size(G));
     result.configuration = cfg;
+    result.constraints = assess_topology_constraints(result, params);
 end
