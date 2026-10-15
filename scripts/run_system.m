@@ -62,17 +62,10 @@ function run_system()
     disp('=========================================================================');
     % Load all created Simulink models
     load_simulink_models();
-    
-    disp(' ');
-    disp('=========================================================================');
-    disp('STEP 6: Generating 24-Hour Simulation Input Profile Data');
-    disp('=========================================================================');
-    % Generate profiles
-    init_24h_profiles();
 
     disp(' ');
     disp('=========================================================================');
-    disp('STEP 7: Configuring Simulation Parameters');
+    disp('STEP 6: Configuring Simulation Parameters');
     disp('=========================================================================');
     % Set simulation time
     sim_time_total = 86400;  % 24 hours in seconds
@@ -89,7 +82,7 @@ function run_system()
     % =============================================================================
     disp(' ');
     disp('=========================================================================');
-    disp('STEP 8: Running 24-Hour Simulation');
+    disp('STEP 7: Running 24-Hour Simulation');
     disp('=========================================================================');
     disp('WARNING: This simulation may take several minutes on first run.');
     disp('(Subsequent runs will be faster with Accelerator mode)');
@@ -122,7 +115,7 @@ function run_system()
     % =============================================================================
     disp(' ');
     disp('=========================================================================');
-    disp('STEP 9: Post-Processing & Analysis');
+    disp('STEP 8: Post-Processing & Analysis');
     disp('=========================================================================');
 
     % Extract results from logged data
@@ -159,7 +152,7 @@ function run_system()
     % =============================================================================
     disp(' ');
     disp('=========================================================================');
-    disp('STEP 10: Computing Performance Metrics');
+    disp('STEP 9: Computing Performance Metrics');
     disp('=========================================================================');
     
     % Energy calculations (if data available)
@@ -202,7 +195,7 @@ function run_system()
     % =============================================================================
     disp(' ');
     disp('=========================================================================');
-    disp('STEP 11: Generating Visualization & Reports');
+    disp('STEP 10: Generating Visualization & Reports');
     disp('=========================================================================');
 
     % Create comprehensive plots
@@ -214,7 +207,7 @@ function run_system()
     % =============================================================================
     disp(' ');
     disp('=========================================================================');
-    disp('STEP 12: Saving Results');
+    disp('STEP 11: Saving Results');
     disp('=========================================================================');
     
     % Save simulation data

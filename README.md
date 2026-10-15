@@ -131,8 +131,8 @@ PV-Station-Digital-Twin/
 ├── TODO.md                                 # Наступні кроки та ідеї
 │
 ├── data/                                   # Дані
-│   ├── profiles_24h.fig                    # 24 Sample profiles for solar irradiance, temperature, load (згенеровані скриптом init_24h_profiles.m)
-│   ├── profiles_24h.mat                    # 24 Sample profiles for solar irradiance, temperature, load (згенеровані скриптом init_24h_profiles.m)
+│   ├── profiles_24h.fig                    # 24 Sample profiles for solar irradiance, temperature, load (згенеровані скриптом init_pv_station_main.m)
+│   ├── profiles_24h.mat                    # 24 Sample profiles for solar irradiance, temperature, load (згенеровані скриптом init_pv_station_main.m)
 │   └── pv_station_parameters.mat           # Параметри фотоелектричної станції (згенеровані скриптом init_pv_station_main.m)
 │
 ├── docs/                                   # Документація
@@ -167,9 +167,8 @@ PV-Station-Digital-Twin/
 │   │   └── build_pv_array_subsystem.m      # Створення пісистеми фотоелектричного поля
 │   │
 │   ├── init/                               # Ініціалізація
-│   │   ├── init_24h_profiles.m             # Ініціалізація добових профілів
 │   │   ├── init_environment.m              # Ініціалізація шляхів та параметрів MATLAB/Simulink
-│   │   ├── init_pv_station_main.m          # Ініціалізація параметрів станції
+│   │   ├── init_pv_station_main.m          # Ініціалізація параметрів станції та добових профілів
 │   │   └── load_simulink_models.m          # Завантаження Simulink-моделей
 │   │
 │   ├── models/                             # Моделі

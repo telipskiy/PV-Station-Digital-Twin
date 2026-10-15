@@ -9,8 +9,8 @@
 
 function init_pv_station_main()
 
-    % Reproducible synthetic profiles. Replace these profiles with measured
-    % meteorological data for a case study and record the data provenance.
+    % Відтворювані синтетичні профілі. Замінити ці профілі на виміряні метеорологічні
+    % дані для конкретного дослідження та зафіксувати походження цих даних.
     rng(20260728, 'twister');
 
     % ========================================================================
@@ -37,13 +37,13 @@ function init_pv_station_main()
     PV.Np = 1;                      % Кількість елементів паралельно (звичайно 1)
 
     % Температурні коефіцієнти – відносна зміна електричних параметрів на °C
-    % Ці значення використовуються в моделі одного діода для налаштування електричних
+    % Ці значення використовуються в моделі для налаштування електричних
     % властивостей на основі фактичної температури елемента
     PV.alpha_I = 0.0032;            % Коефіцієнт для Isc [A/°C]
     PV.beta_V = -0.123;             % Коефіцієнт для Voc [V/°C]
     PV.gamma_P = -0.5;              % Коефіцієнт для Pmax [%/°C]
     
-    % Параметри моделі одного діода - Математична модель для фотоелектричного елемента:
+    % Параметри моделі - Математична модель для фотоелектричного елемента:
     % I = I_ph - I_0*(exp(qV/nkT) - 1) - V/Rsh
     % де I_ph - фотострум, I_0 - струм насичення, n - коефіцієнт ідеальності
     PV.I_ph_ref = PV.Isc_stc * 1.01;            % Фотострум при STC
@@ -51,8 +51,8 @@ function init_pv_station_main()
     PV.Rs = 0.2;                                % Послідовний опір [Ω]
     PV.Rsh = 415;                               % Шунтуючий опір [Ω]
     PV.n = 1.2;                                 % Коефіцієнт ідеальності
-    PV.T_ref = 25;                              % Опорна температура [°C]
-    PV.G_ref = 1000;                            % Опорна радіація [W/m²]
+    PV.T_ref = STC.T;                           % Опорна температура [°C]
+    PV.G_ref = STC.G;                           % Опорна радіація [W/m²]
 
     % КОНФІГУРАЦІЯ ПОЛЯ - Змінні проектування для оптимізації
     % Вектор змінних для оптимізації: n_s (модулів у ряді), n_p (паралельних рядів)
@@ -149,7 +149,7 @@ function init_pv_station_main()
     fprintf('\n');
     
     % ========================================================================
-    % 4. ПАРАМЕТРИ ТРАНСФОРМАТОРА (опціонально)
+    % 4. ПАРАМЕТРИ ТРАНСФОРМАТОРА
     % Мета: Визначити параметри для підвищувального трансформатора (від 0,4 кВ до 10 кВ),
     % який використовується для підключення фотоелектричної системи до мережі середньої напруги.
     % Включає втрати в осерді, втрати в міді та теплові характеристики.
@@ -219,73 +219,152 @@ function init_pv_station_main()
     fprintf('\n');
     
     % ========================================================================
-    % 6. ПРОФІЛЬ НАВАНТАЖЕННЯ (добовий цикл)
+    % 6. ПРОФІЛІ НАВАНТАЖЕННЯ, СОНЯЧНОЇ РАДІАЦІЇ ТА ТЕМПЕРАТУРИ (добовий цикл)
     % Мета: Визначити реалістичний профіль електричного навантаження, 
-    % що відображає споживання споживача протягом 24 годин.
-    % Включає змінну в часі активну та реактивну потужність.
+    % що відображає споживання споживача протягом 24 годин. Включає змінну в часі 
+    % активну та реактивну потужність. Визначити реалістичні профілі сонячної радіації 
+    % та температури елемента. Використовує косинусоподібну криву для ясного дня з 
+    % типовим часом сходу/заходу сонця.
     % ========================================================================
     
-    % Часовий вектор (24 години, крок 15 хвилин)
-    time_step = 15;                               % Крок [хвилин]
-    t_sim = (0:time_step:24*60-time_step)' * 60;  % Перевести в секунди
+    % Часовий вектор: 0 to 86400 секунд (24 години, крок 1 хвилина)
+    t_sim = (0:60:86400)';
+    t_hours = t_sim / 3600;
+    hour = mod(t_hours, 24);
     n_samples = length(t_sim);
     
+    % -------------------------------
+    % Створення профілю навантаження
+    % -------------------------------
+
+    % Припущення щодо коефіцієнта потужності
+    pf = 0.95;
+
     % Типовий профіль навантаження (нормалізований) - типова картина з піками о 8:00 та 18:00
-    hour = mod(t_sim/3600, 24);
-    P_load_norm = 0.4 + 0.35*sin(2*pi*(hour-6)/24) + 0.15*randn(n_samples, 1);
+    P_load_norm = 0.6 + 0.3 * sin(2 * pi * (hour - 6) / 24) + 0.01 * randn(n_samples, 1);
     P_load_norm = max(0.2, min(1, P_load_norm));  % Клипування [0.2, 1.0]
 
     % Реактивна складова потужності (коефіцієнт потужності cos(φ) = 0,95, типовий для промислових навантажень)
-    Q_load_norm = P_load_norm * tan(acos(0.95));
+    Q_load_norm = P_load_norm * tan(acos(pf));
     
-    LOAD.P_base = 30e3;                           % Базове активне навантаження [W]
-    LOAD.Q_base = LOAD.P_base * tan(acos(0.95));  % Базове реактивне навантаження [VAR]
+    Load_profile.P_base = 30e3;                                   % Базове активне навантаження [W]
+    Load_profile.Q_base = Load_profile.P_base * tan(acos(pf));    % Базове реактивне навантаження [VAR]
     
     % Масштабування нормалізованого профілю до фактичних значень
-    LOAD.P_demand = LOAD.P_base * P_load_norm;
-    LOAD.Q_demand = LOAD.Q_base * Q_load_norm;
+    Load_profile.P_demand = Load_profile.P_base * P_load_norm;
+    Load_profile.Q_demand = Load_profile.Q_base .* (Q_load_norm / max(Q_load_norm(:))); % нормалізація щоб амплітуда Q відповідала базовому рівню Q_base
     
+    % Можливо використовувати цей варіант
+    % Low at night, peak in morning and evening
+    % Load_profile = 5000 + 8000 * sin((t_hours - 6) * pi / 12);  % 5-13 kW
+    % Load_profile(t_hours < 6 | t_hours > 18) = 3000;  % Night load (lighting, etc)
+    % Load_profile(t_hours >= 12 & t_hours <= 14) = Load_profile(t_hours >= 12 & t_hours <= 14) + 2000;  % Lunch peak
+    % Load_profile(Load_profile < 0) = 0;
+
     disp('=== Load Profile ===');
-    fprintf('Base Active Load: %.1f kW\n', LOAD.P_base/1e3);
-    fprintf('Base Power Factor: 0.95\n');
+    fprintf('Base Active Load: %.1f kW\n', Load_profile.P_base/1e3);
+    fprintf('Peak Active Load: %.1f kW\n', max(Load_profile.P_demand)/1e3);
+    fprintf('Peak Reactive Load: %.1f kVAR\n', max(Load_profile.Q_demand)/1e3);
+    fprintf('Base Power Factor: %.2f\n', pf);
     fprintf('\n');
-    
-    % ========================================================================
-    % 7. ПРОФІЛЬ СОНЯЧНОЇ РАДІАЦІЇ (добовий цикл)
-    % Мета: Визначити реалістичні профілі сонячної радіації та температури елемента.
-    % Використовує косинусоподібну криву для ясного дня з типовим часом сходу/заходу сонця.
-    % ========================================================================
-    
-    % Типовий солярний день (ясна погода)
+
+    % -------------------------------
+    % Створення профілю опроміненості
+    % -------------------------------
+
+    % Типовий день (ясна погода)
     sunrise = 6;                    % Схід сонця
     sunset = 18;                    % Захід сонця
+    peak = sunset - sunrise;        % Пік опівдні
     G_max = 1000;                   % Максимальна радіація [W/m²]
-    
-    % Створення профілю опроміненості за допомогою косинусної кривої (ясна погода)
-    G_profile = zeros(n_samples, 1);
-    for i = 1:n_samples
-        h = hour(i);
-        if h >= sunrise && h <= sunset
-            % Косинусна крива досягає піку опівдні
-            G_profile(i) = G_max * cos(pi*(h-sunrise)/(sunset-sunrise) - pi/2) * 0.9 + 50*randn;
-            G_profile(i) = max(0, G_profile(i));
-        end
-    end
-    
-    SOLAR.G_profile = G_profile; % Сонячна радіація [Вт/м²]
+    sigma = 6;                      % Spread (hours)
 
-    % Модель температури елемента: T_cell = 25 + 30*(G/G_max)² + випадковий шум
-    % Вища опроміненість → вища температура елемента (знижує ефективність)
-    SOLAR.T_cell = 25 + 30*(G_profile/G_max).^2 + 5*randn(n_samples,1);
-    SOLAR.T_cell = max(0, SOLAR.T_cell);
+    G_profile = G_max * exp(-((t_hours - peak).^2) / (2 * sigma^2));
+    G_profile(G_profile < 5) = 0;  % Нема генерації вночі (< 5 W/m²)
+    
+    % Додаємо незначні варіації (хмари)
+    G_profile = G_profile + 20 * sin(t_sim / 1000);
+    G_profile(G_profile < 0) = 0;
     
     disp('=== Solar Irradiance Profile ===');
-    fprintf('Peak Irradiance: %.0f W/m²\n', max(SOLAR.G_profile));
-    fprintf('Average Irradiance (6-18h): %.0f W/m²\n', mean(SOLAR.G_profile(hour>=6 & hour<=18)));
+    fprintf('Peak Irradiance: %.0f W/m²\n', max(G_profile));
+    fprintf('Average Irradiance (6-18h): %.0f W/m²\n', mean(G_profile(hour>=6 & hour<=18)));
     fprintf('\n');
     
+    % -------------------------------
+    % Створення профілю температури
+    % -------------------------------
+
+    % Температура навколишнього середовища: прохолодно вночі, тепло вдень
+    T_amb = 20 + 10 * sin((t_hours - 6) * pi / 12);
+    T_amb(t_hours < 6 | t_hours > 18) = 15;
+    
+    % Температура елемента = температура навколишнього середовища + підвищення внаслідок опромінення
+    % T_cell ≈ T_amb + 0.05 * G. Температура комірки підвищується зі зростанням опроміненості
+    T_profile = T_amb + 0.05 * G_profile;
+    T_profile(T_profile > 60) = 60;  % Cap at 60°C
+
+    disp('=== Temperature Profile ===');
+    fprintf('Peak temperature: %.0f °C\n', max(T_profile));
+    fprintf('Average temperature (6-18h): %.0f °C\n', mean(T_profile(hour>=6 & hour<=18)));
+    fprintf('\n');
+
+    % Зберігаемо для структури даних
+    LOAD = Load_profile;                % Профіль навантаження
+    SOLAR.G_profile = G_profile;        % Сонячна радіація [Вт/м²]
+    SOLAR.T_profile = T_profile;        % Температурний профіль
+
+    % Зберігаємо в MAT файл
+    data_dir = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+    profiles_file = fullfile(data_dir, 'data', 'profiles_24h.mat');
+
+    if ~exist(fullfile(data_dir, 'data'), 'dir')
+        mkdir(fullfile(data_dir, 'data'));
+    end
+    save(profiles_file, 'G_profile', 'T_profile', 'Load_profile', 't_sim');
+
+    % Візуалізуємо профілі
+    figure('Name', 'PV Station 24-Hour Profiles', 'NumberTitle', 'off');
+
+    % Сонячна радіація
+    subplot(4, 1, 1);
+    plot(t_hours, G_profile, 'b-', 'LineWidth', 1.5);
+    grid on; xlabel('Time [hours]'); ylabel('Irradiance [W/m²]');
+    title('Solar Irradiance Profile - 24 Hours');
+    axis([0 24 0 max(65, max(G_profile)+1)]);
+
+    % Температурний профіль
+    subplot(4, 1, 2);
+    plot(t_hours, T_profile, 'r-', 'LineWidth', 1.5);
+    grid on; xlabel('Time [hours]'); ylabel('Cell Temperature [°C]');
+    title('Cell Temperature Profile - 24 Hours');
+    axis([0 24 0 max(65, max(T_profile)+1)]);
+    
+    % Active Load
+    subplot(4, 1, 3);
+    plot(t_hours, Load_profile.P_demand/1000, 'g-', 'LineWidth', 1.5);
+    grid on; xlabel('Time [hours]'); ylabel('Active Load Power [kW]');
+    title('Active Load Demand - 24 Hours');
+    axis([0 24 0 max(15, max(Load_profile.P_demand)/1e3 + 1)]);
+
+    % Reactive Load
+    subplot(4, 1, 4);
+    plot(t_hours, Load_profile.Q_demand/1000, 'm-', 'LineWidth', 1.5);
+    grid on; xlabel('Time [hours]'); ylabel('Reactive Load Power [kVAR]');
+    title('Reactive Load Demand - 24 Hours');
+    axis([0 24 0 max(5, max(Load_profile.Q_demand)/1e3 + 0.5)]);
+
+    try
+        savefig(fullfile(data_dir, 'data', 'profiles_24h.fig'));
+        disp('=== Profiles processing ===');
+        fprintf('Profiles and figure saved to: %s\n', fullfile(data_dir, 'data'));
+        fprintf('\n');
+    catch
+        warning('Could not save figure file.');
+    end
+
     % ========================================================================
-    % 8. ВЕКТОР ЗМІННИХ ОПТИМІЗАЦІЇ
+    % 7. ВЕКТОР ЗМІННИХ ОПТИМІЗАЦІЇ
     % Мета: Визначити змінні рішення для багатоцільової оптимізації.
     % Це параметри, які можна налаштувати для мінімізації вартості системи, водночас
     % дотримуючись обмежень продуктивності та надійності.
@@ -343,7 +422,7 @@ function init_pv_station_main()
     fprintf('\n');
     
     % ========================================================================
-    % 9. ЕКОНОМІЧНІ ПАРАМЕТРИ
+    % 8. ЕКОНОМІЧНІ ПАРАМЕТРИ
     % Мета: Визначити всі параметри витрат та економічні показники для розрахунків LCOE
     % (приведеної вартості енергії) та NPV (чистої приведеної вартості).
     % ========================================================================
@@ -370,7 +449,7 @@ function init_pv_station_main()
     fprintf('\n');
     
     % ========================================================================
-    % 10. ПАРАМЕТРИ СИМУЛЯЦІЇ
+    % 9. ПАРАМЕТРИ СИМУЛЯЦІЇ
     % Мета: Визначити параметри числового розв'язувача та моделювання для Simulink.
     % Критично важливо для точності та обчислювальної ефективності динамічного моделювання.
     % ========================================================================
@@ -389,7 +468,7 @@ function init_pv_station_main()
     fprintf('\n');
     
     % ========================================================================
-    % 11. ПАРАМЕТРИ МІСЦЕПОЛОЖЕННЯ (для MPPT і прогнозу)
+    % 10. ПАРАМЕТРИ МІСЦЕПОЛОЖЕННЯ (для MPPT і прогнозу)
     % Мета: Визначити географічне розташування для оцінки сонячних ресурсів та
     % обробки часового поясу. Важливо для моделей прогнозування опромінення.
     % ========================================================================
@@ -405,7 +484,7 @@ function init_pv_station_main()
     fprintf('\n');
     
     % ========================================================================
-    % 12. ЗБЕРЕЖЕННЯ ВСІХ ПАРАМЕТРІВ
+    % 11. ЗБЕРЕЖЕННЯ ВСІХ ПАРАМЕТРІВ
     % Мета: Зберегти всі ініціалізовані параметри у файл даних MATLAB для
     % швидкого завантаження в наступних скриптах без повторного запуску ініціалізації.
     % ========================================================================
@@ -415,8 +494,8 @@ function init_pv_station_main()
     save('./data/pv_station_parameters.mat', 'PV', 'DCDC', 'INV', 'TR', 'GRID', 'CABLE', 'TOPOLOGY', 'PARAMS', ...
     'LOAD', 'SOLAR', 'X_opt', 'WEIGHT', 'ECONOMICS', 'SIM', 'SITE', 't_sim', 'hour');
 
-    % Referenced Simulink models evaluate block parameters in the base
-    % workspace.  Publish the same parameter objects that were archived.
+    % Підключені Simulink моделі обчислюють параметри блоків у базовому робочому просторі.
+    % Публікуємо ті самі параметри, що були збережені в архіві.
     baseVariables = {'PV','DCDC','INV','TR','GRID','CABLE','TOPOLOGY','PARAMS', ...
         'LOAD','SOLAR','X_opt','WEIGHT','ECONOMICS','SIM','SITE','t_sim','hour'};
     for k = 1:numel(baseVariables)

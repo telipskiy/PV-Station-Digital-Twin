@@ -27,7 +27,6 @@ addpath(genpath('./'));
 % Step 2: Run compatibility test
 test_compatibility();
 
-
 % Step 3: Initialize parameters & test topology
 test_topology_core();
 
@@ -37,8 +36,6 @@ build_all_models();
 % Step 5: Load all created Simulink models
 load_simulink_models();
 
-% Step 6: Generate 24h profiles
-init_24h_profiles();
 ```
 
 Згенеровані Simulink-моделі компілюються.
@@ -306,7 +303,6 @@ close all;
 **Cause:** Workspace profiles not loaded  
 **Solution:**
 ```matlab
-init_24h_profiles();      % Generate profiles
 init_pv_station_main();   % Load parameters
 sim('PV_Station_Main');   % Run simulation
 ```
