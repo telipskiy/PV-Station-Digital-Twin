@@ -128,7 +128,7 @@ sim_output.eta_log        % System efficiency [%]
 PV-Station-Digital-Twin/
 │
 ├── README.md                               # Цей файл
-├── TODO.md                                 # Наступні кроки та ідеї
+├── GETTING_STARTED.md                      # Керівництво з використання
 │
 ├── data/                                   # Дані
 │   ├── profiles_24h.fig                    # 24 Sample profiles for solar irradiance, temperature, load (згенеровані скриптом init_pv_station_main.m)
@@ -137,7 +137,8 @@ PV-Station-Digital-Twin/
 │
 ├── docs/                                   # Документація
 │   ├── ARCHITECTURE.md                     # Опис архітектури системи
-│   └── GETTING_STARTED.md                  # Керівництво з використання
+│   ├── MODEL_SCOPE_AND_VALIDATION.md       # Межі застосовності та валідація моделі
+│   └── TODO.md                             # Наступні кроки та ідеї
 │
 ├── examples/                               # Приклади Simulink (використовувати для покращення підсистем і моделей)
 │
