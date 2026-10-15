@@ -133,7 +133,8 @@ PV-Station-Digital-Twin/
 ├── data/                                   # Дані
 │   ├── profiles_24h.fig                    # 24 Sample profiles for solar irradiance, temperature, load (згенеровані скриптом init_pv_station_main.m)
 │   ├── profiles_24h.mat                    # 24 Sample profiles for solar irradiance, temperature, load (згенеровані скриптом init_pv_station_main.m)
-│   └── pv_station_parameters.mat           # Параметри фотоелектричної станції (згенеровані скриптом init_pv_station_main.m)
+│   ├── pv_station_parameters.mat           # Параметри фотоелектричної станції (згенеровані скриптом init_pv_station_main.m)
+│   └── ua_pv_plants_dataset.mat            # Довідковий технічний набір даних реальних українських фотоелектричних електростанцій
 │
 ├── docs/                                   # Документація
 │   ├── ARCHITECTURE.md                     # Опис архітектури системи
